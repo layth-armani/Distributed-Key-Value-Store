@@ -1,0 +1,15 @@
+.depend
+*.o
+__pycache__
+dkvs-client
+fake-dkvs-client
+dkvs-dump
+dkvs-ping
+dkvs-server
+udp-test-client
+udp-test-server
+
+*.xml
+*.html
+!index.html
+*.jpg
