@@ -110,7 +110,7 @@ kv_list_t *Htable_get_content(const Htable_t* table);
  * @param key the key which is to be delete
  * @return 0 on success; error code on errror (see error.h)
  */
-int Htable_remove_key(Htable_t* table, dkvs_key_t key);
+int Htable_remove_key(Htable_t* table, dkvs_const_key_t key);
 
 /**
  * @brief free a key-value pair content (both of them)
