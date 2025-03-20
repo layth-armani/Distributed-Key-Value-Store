@@ -14,8 +14,10 @@ struct bckt_t{
 };
 
 size_t hash_function(dkvs_const_key_t key, size_t size){
-    M_REQUIRE(size != 0, SIZE_MAX, "size == %d", 0);
-    M_REQUIRE_NON_NULL_CUSTOM_ERR(key, SIZE_MAX);
+
+    if ((key == NULL) || (size == 0)){
+        return SIZE_MAX;
+    }
 
     size_t hash = 0;
     const size_t key_len = strlen(key);
@@ -49,16 +51,12 @@ Htable_t* Htable_construct(size_t size){
         return NULL;
     }
 
- 
-    
-   
     return result;
 }
 
 void Htable_free_content(Htable_t* table){
     free(table->content);
 }
-
 
 void Htable_free(Htable_t** p_table){
     Htable_free_content(*p_table);
@@ -92,9 +90,9 @@ int create_bucket(bucket_t* bucket,dkvs_const_key_t key,dkvs_const_value_t value
         fprintf(stderr, "Failed to allocate memory for kv_pair\n");
         return ERR_OUT_OF_MEMORY;
     }
-    new_pair->key = key;
-    new_pair->value = value;
-    
+    strncpy(new_pair->key,key,strlen(key)+1);
+    strncpy(new_pair->value,value,strlen(value)+1);
+      
     //Build new Bucket with no overflow 
     bucket->kv_pair = new_pair;
     bucket->collision = NULL;
