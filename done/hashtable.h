@@ -30,16 +30,24 @@
  * Here define the kv_pair_t type
  * (and remove these three lines of then-useless comment).
  */
+ typedef struct
+ {
+    dkvs_key_t key;
+    dkvs_value_t value;
+ }kv_pair_t;
+
 
 /*
  * Definition of local hash-table type
  */
 
-typedef struct {} bucket_t;
+struct bckt_t;
+typedef struct bckt_t bucket_t;
+
 
 typedef struct {
     size_t size;
-    bucket_t** content;
+    bucket_t* content;
 }Htable_t;
 
 
