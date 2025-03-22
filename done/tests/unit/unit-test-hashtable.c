@@ -12,7 +12,7 @@
 
 #include "test.h"
 #include "util.h"
-#include "hashtable.h"
+#include "../../hashtable.h"
 
 // ------------------------------------------------------------
 #define SIZE(X) (sizeof(X) / sizeof(*(X)))
@@ -64,9 +64,9 @@ START_TEST(construct_and_delete)
 {
     for (size_t size = 1; size < 3; ++size) {
         Htable_t* table = Htable_construct(size);
-
+        
         ck_assert_ptr_nonnull(table);
-
+        
         Htable_free(&table);
     }
 }
@@ -80,18 +80,32 @@ START_TEST(add_value_does_retrieve_same_value)
    */
 
     FOREACH_KEY_PTR(key) {
-        FOREACH_KEY_PTR(value) {
+        FOREACH_VALUE_PTR(value) {
+            printf("TEST FOR (%s,%s)\n",*key,*value);
             ck_assert_err_none(Htable_add_value(global_table, *key,  *value));
             ck_assert_get_value_eq(global_table, *key, *value);
         }
     }
+
+   
 }
 END_TEST
 
 // ======================================================================
-START_TEST(your_own_test)
+START_TEST(my_test)
 {
     puts("Ecrivez ici vos tests et SUPPRIMEZ ce puts");
+
+    Htable_t* table = Htable_construct(256);
+
+    dkvs_const_key_t key = "foo";
+    dkvs_const_value_t set_value = "bar";
+    Htable_add_value(table, key, set_value);
+
+    dkvs_value_t read_value = Htable_get_value(table, key);
+
+    ck_assert_str_eq(set_value, read_value);
+
 }
 END_TEST
 
