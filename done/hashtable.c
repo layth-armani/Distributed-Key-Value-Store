@@ -99,7 +99,7 @@ int override_value(bucket_t* bucket, dkvs_const_key_t key,dkvs_const_value_t new
     dkvs_key_t key_at_hash = bucket->kv_pair->key; // Current key of the entry
     dkvs_value_t value_at_hash = bucket->kv_pair->value; // Current value of the entry
 
-    printf("VALUE TO OVERRIDE: \"%s\"\n",value_at_hash);
+    //printf("VALUE TO OVERRIDE: \"%s\"\n",value_at_hash);
 
 
 
@@ -125,7 +125,7 @@ int create_bucket(bucket_t* bucket,dkvs_const_key_t key,dkvs_const_value_t value
     //Build new KV pair
     
     
-    printf("Creating bucket at: %p\n",bucket);
+    //printf("Creating bucket at: %p\n",bucket);
 
     kv_pair_t* new_pair = calloc(1,sizeof(kv_pair_t));
     new_pair->key = calloc(strlen(key)+1,sizeof(char));
@@ -163,13 +163,13 @@ int Htable_add_value(Htable_t* table, dkvs_const_key_t key, dkvs_const_value_t v
     }
 
     //Case 2.0 : The table entry is not empty
-    printf("Accessing bucket at: %p\n",bckt_at_hash);
+    //printf("Accessing bucket at: %p\n",bckt_at_hash);
 
     // Go through the chained list to get the first free spot
     while (bckt_at_hash!=NULL)
     {
-        printf("KEY OF BUCKET: \"%s\"\n",bckt_at_hash->kv_pair->key);
-        printf("VALUE OF BUCKET: \"%s\"\n",bckt_at_hash->kv_pair->value);
+        //printf("KEY OF BUCKET: \"%s\"\n",bckt_at_hash->kv_pair->key);
+        //printf("VALUE OF BUCKET: \"%s\"\n",bckt_at_hash->kv_pair->value);
         if (override_value(bckt_at_hash,key,value)){
             return ERR_NONE;
         }
@@ -191,7 +191,7 @@ dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key){
     
     size_t hash = hash_function(key,table->size); 
     bucket_t* bucket = table->content + hash;
-    printf("GET_VALUE AT %p\n",bucket);
+    //printf("GET_VALUE AT %p\n",bucket);
     do {
         if (bucket->kv_pair != NULL && bucket->kv_pair->key !=NULL)
         {
