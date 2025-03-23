@@ -54,6 +54,14 @@ Htable_t* Htable_construct(size_t size){
     return result;
 }
 
+
+void kv_pair_free(kv_pair_t *kv){
+    free(kv->key);
+    free(kv->value);
+    free(kv);
+}
+
+
 void Htable_free_content(Htable_t* table){
     for (size_t i = 0; i < table->size; i++)
     {
@@ -64,9 +72,7 @@ void Htable_free_content(Htable_t* table){
             bucket_t* next = b->collision; 
             if (b->kv_pair != NULL)
             {
-                free(b->kv_pair->key);
-                free(b->kv_pair->value);
-                free(b->kv_pair);
+                kv_pair_free(b->kv_pair);
             }
             free(b);
             b = next;
@@ -75,16 +81,12 @@ void Htable_free_content(Htable_t* table){
       
         if (table->content[i].kv_pair != NULL)
         {
-            free(table->content[i].kv_pair->key);
-            free(table->content[i].kv_pair->value);
-            free(table->content[i].kv_pair);
+            kv_pair_free(table->content[i].kv_pair);
         }
-    }
 
+    }
 }
     
-    
-
 
 void Htable_free(Htable_t** p_table){
     Htable_free_content(*p_table);
@@ -92,6 +94,14 @@ void Htable_free(Htable_t** p_table){
     free(*p_table);
     *p_table = NULL;
 }
+
+/**
+ * Overrides the value of an existing key in a bucket.
+ * @param bucket The bucket to modify.
+ * @param key The key to check.
+ * @param new_value The new value to set.
+ * @return 1 if overridden, 0 otherwise.
+ */
 
 
 int override_value(bucket_t* bucket, dkvs_const_key_t key,dkvs_const_value_t new_value){
@@ -120,6 +130,14 @@ int override_value(bucket_t* bucket, dkvs_const_key_t key,dkvs_const_value_t new
 
     return 0;
 }
+
+/**
+ * Creates a new bucket with a key-value pair.
+ * @param bucket The bucket to initialize.
+ * @param key The key for the pair.
+ * @param value The value for the pair.
+ * @return ERR_NONE on success, ERR_OUT_OF_MEMORY on failure.
+ */
 
 int create_bucket(bucket_t* bucket,dkvs_const_key_t key,dkvs_const_value_t value){
     //Build new KV pair
@@ -182,7 +200,7 @@ int Htable_add_value(Htable_t* table, dkvs_const_key_t key, dkvs_const_value_t v
     return create_bucket(bckt_at_hash,key,value);
 }
 
-//CALLER SHOULD FREE THIS RETURN VALUE
+//WARNING : CALLER SHOULD FREE THE RETURN VALUE
 
 dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key){
     if (table == NULL || key == NULL){
@@ -205,6 +223,33 @@ dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key){
     } while (bucket != NULL);
 
     return NULL;
+}
+
+
+void Htable_print(const Htable_t* table) {
+    if (table == NULL) {
+        printf("Hashtable is NULL.\n");
+        return;
+    }
+
+    for (size_t i = 0; i < table->size; i++) {
+        bucket_t* bucket = &table->content[i];
+        printf("Bucket %zu: ", i);
+
+        if (bucket->kv_pair == NULL) {
+            printf("Empty\n");
+        }
+        
+        else{
+        while (bucket != NULL) {
+            if (bucket->kv_pair != NULL) {
+                printf("[Key: %s, Value: %s] -> ", bucket->kv_pair->key, bucket->kv_pair->value);
+            }
+            bucket = bucket->collision;
+        }
+        printf("NULL\n");
+    }
+    }
 }
 
 

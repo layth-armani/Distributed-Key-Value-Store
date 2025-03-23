@@ -86,6 +86,7 @@ START_TEST(add_value_does_retrieve_same_value)
             ck_assert_get_value_eq(global_table, *key, *value);
         }
     }
+    
    
 }
 END_TEST
