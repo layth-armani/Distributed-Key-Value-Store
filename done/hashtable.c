@@ -81,8 +81,6 @@ void Htable_free_content(Htable_t* table){
         }
     }
 
-    free(table->content); 
-    table->content = NULL;
 }
     
     
@@ -90,6 +88,7 @@ void Htable_free_content(Htable_t* table){
 
 void Htable_free(Htable_t** p_table){
     Htable_free_content(*p_table);
+    free((*p_table)->content);
     free(*p_table);
     *p_table = NULL;
 }
