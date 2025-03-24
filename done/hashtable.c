@@ -30,6 +30,12 @@ size_t hash_function(dkvs_const_key_t key, size_t size) {
 }
 
 Htable_t* Htable_construct(size_t size) {
+    if (size == 0)
+    {
+        fprintf(stderr, "Cannot construct a Hashtable with size 0: Returning NULL\n");
+        return NULL;
+    }
+    
     Htable_t* result = malloc(sizeof(Htable_t));
     if (!result) {
         fprintf(stderr, "Couldn't allocate memory for Hashtable: Returning NULL\n");
@@ -47,12 +53,14 @@ Htable_t* Htable_construct(size_t size) {
 }
 
 void kv_pair_free(kv_pair_t *kv) {
+    if(kv == NULL)return;
     free(kv->key);
     free(kv->value);
     free(kv);
 }
 
 void Htable_free_content(Htable_t* table) {
+    if(table == NULL || table->content == NULL)return;
     for (size_t i = 0; i < table->size; i++) {
         bucket_t* b = table->content[i].collision;
 
@@ -72,6 +80,7 @@ void Htable_free_content(Htable_t* table) {
 }
 
 void Htable_free(Htable_t** p_table) {
+    if(p_table == NULL || *p_table == NULL)return;
     Htable_free_content(*p_table);
     free((*p_table)->content);
     free(*p_table);
