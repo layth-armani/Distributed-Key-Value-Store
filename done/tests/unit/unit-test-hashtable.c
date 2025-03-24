@@ -59,6 +59,10 @@ void allocate_global_ht(void)
 void free_global_ht(void)
 { Htable_free(&global_table); }
 
+void print_global_ht(void){
+    Htable_print(global_table);
+}
+
 // ======================================================================
 START_TEST(construct_and_delete)
 {
@@ -92,8 +96,41 @@ START_TEST(add_value_does_retrieve_same_value)
 END_TEST
 
 // ======================================================================
-START_TEST(my_test)
+START_TEST(test_full_table)
 {
+    #define KEY_LEN 3
+    #define VAL_LEN 6
+
+    char alphabet[26] = "abcdefghijklmnopqrstuvwxyz";
+    dkvs_key_t key = malloc(KEY_LEN*sizeof(char));
+    dkvs_key_t value = malloc(VAL_LEN*sizeof(char));
+
+
+    for (size_t i = 0; i < global_table->size; i++)
+    {
+        for (size_t j = 0; j < KEY_LEN; j++)
+        {   
+            char c = RANDOM(alphabet);
+            key[j] = c;
+        }
+        key[KEY_LEN - 1] = '\0';
+
+        for (size_t k = 0; k < VAL_LEN; k++)
+        {
+            char c = RANDOM(alphabet);
+            value[k] = c;
+        }
+        value[VAL_LEN -1] = '\0';
+
+        ck_assert_err_none(Htable_add_value(global_table,key,value));
+        ck_assert_get_value_eq(global_table,key,value);
+
+    }
+    free(key);
+    free(value);
+
+    Htable_print(global_table);
+    
     
 }
 END_TEST
@@ -109,7 +146,9 @@ Suite *hashtable_suite(void)
 
     Add_Test_With_Fixture(s, add_value_does_retrieve_same_value, allocate_global_ht, free_global_ht);
 
-    Add_Test_With_Fixture(s,my_test,allocate_global_ht,free_global_ht);
+    Add_Test_With_Fixture(s,test_full_table,allocate_global_ht,free_global_ht);
+
+    
 
     return s;
 }
