@@ -8,10 +8,12 @@
  * @date 2017-2024
  */
 
-#include <check.h>
-#include <stdlib.h> // EXIT_FAILURE
-
 #include "error.h"
+
+#include <arpa/inet.h>
+#include <check.h>
+#include <stdio.h>
+#include <stdlib.h> // EXIT_FAILURE
 
 #if CHECK_MINOR_VERSION >= 13
 #define TEST_FUNCTION_POSTFIX "_fn"
@@ -24,14 +26,14 @@ static const char *const ERR_NAMES[] = {
     "ERR_IO",
     "ERR_RUNTIME",
     "ERR_OUT_OF_MEMORY",
-    "ERR_NOT_ENOUGH_ARGUMENTS",
     "ERR_NETWORK",
+    "ERR_INVALID_CONFIG",
     "ERR_INVALID_COMMAND",
     "ERR_INVALID_ARGUMENT",
     "ERR_ADDRESS",
+    "ERR_NOT_FOUND",
     "ERR_THREADING",
-    "ERR_LAST"
-};
+    "ERR_LAST"};
 
 #define ERR_NAME(err)                                                                            \
     (err < ERR_FIRST || ERR_LAST < err ? err > 0 ? "VALUE" : (err == 0 ? "ERR_NONE" : "UNKNOWN") \
@@ -125,7 +127,7 @@ static const char *const ERR_NAMES[] = {
 #define start_test_print test_print("=== %s:\n", __func__)
 #define end_test_print test_print("=== END of %s:\n", __func__)
 
-#define NON_NULL ((void *) 1)
+#define NON_NULL ((void *)1)
 
 static void read_file(void *buffer, const char *filename, size_t size)
 {
@@ -153,3 +155,11 @@ static void read_file_and_size(void **buffer, const char *filename, size_t *size
 
     fclose(file);
 }
+
+#define ck_assert_node_eq(node, ip, port, _sha)                     \
+    do {                                                            \
+        ck_assert_int_eq(ntohs(node.addr.sin_port), port);          \
+        ck_assert_int_eq(node.addr.sin_addr.s_addr, inet_addr(ip)); \
+                                                                    \
+        ck_assert_mem_eq(node.sha, _sha, SHA_DIGEST_LENGTH);        \
+    } while (0)

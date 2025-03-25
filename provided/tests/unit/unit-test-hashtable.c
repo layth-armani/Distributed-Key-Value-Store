@@ -80,7 +80,7 @@ START_TEST(add_value_does_retrieve_same_value)
    */
 
     FOREACH_KEY_PTR(key) {
-        FOREACH_KEY_PTR(value) {
+        FOREACH_VALUE_PTR(value) {
             ck_assert_err_none(Htable_add_value(global_table, *key,  *value));
             ck_assert_get_value_eq(global_table, *key, *value);
         }

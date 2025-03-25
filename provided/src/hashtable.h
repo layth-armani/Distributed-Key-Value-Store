@@ -78,8 +78,8 @@ void Htable_free_content(Htable_t* table);
 int Htable_add_value(Htable_t* table, dkvs_const_key_t key, dkvs_const_value_t value);
 
 /**
- * @brief get a value for a given in the given hash-table
- * @param table the table where to get
+ * @brief get a value for a given key in the given hash-table
+ * @param table the table where to get the value from
  * @param key the key associated to the wanted value
  * @return the associated value
  */
