@@ -35,7 +35,7 @@ Htable_t* Htable_construct(size_t size) {
         fprintf(stderr, "Cannot construct a Hashtable with size 0: Returning NULL\n");
         return NULL;
     }
-    
+
     Htable_t* result = malloc(sizeof(Htable_t));
     if (!result) {
         fprintf(stderr, "Couldn't allocate memory for Hashtable: Returning NULL\n");
@@ -43,6 +43,12 @@ Htable_t* Htable_construct(size_t size) {
     }
 
     result->size = size;
+
+    if (size > SIZE_MAX / sizeof(bucket_t)) {
+        fprintf(stderr, "Requested size for Hashtable content is too large, potential overflow: Returning NULL\n");
+        free(result);
+        return NULL;
+    }
 
     if ((result->content = calloc(size, sizeof(bucket_t))) == NULL) {
         fprintf(stderr, "Couldn't allocate memory for the Hashtable content: Returning NULL\n");

@@ -142,6 +142,8 @@ START_TEST(construct_edges)
 {
     Htable_t* zero_size = Htable_construct(0);
     ck_assert_ptr_null(zero_size);
+    Htable_t* large_size = Htable_construct((SIZE_MAX));
+    ck_assert_ptr_null(zero_size);
 }
 END_TEST
 
@@ -210,11 +212,12 @@ START_TEST(add_edges)
     ck_assert_err_none(Htable_add_value(global_table, "\0",  "\0"));
     ck_assert_get_value_eq(global_table, "\0", "\0");
 
-    const char* longboyy = "longggggboooyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy";
+    const char* big_s = calloc(1, 0x100000000/sizeof(char));
 
-    ck_assert_err_none(Htable_add_value(global_table, longboyy,  longboyy));
-    ck_assert_get_value_eq(global_table, longboyy, longboyy);
-    
+    ck_assert_err_none(Htable_add_value(global_table, big_s,  big_s));
+    ck_assert_get_value_eq(global_table, big_s, big_s);
+
+    free((void*)big_s);
 }
 END_TEST
 
