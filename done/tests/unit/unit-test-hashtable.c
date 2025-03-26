@@ -217,6 +217,15 @@ START_TEST(add_edges)
     ck_assert_err_none(Htable_add_value(global_table, big_s,  big_s));
     ck_assert_get_value_eq(global_table, big_s, big_s);
 
+    ck_assert_invalid_arg(Htable_add_value(NULL, big_s,  big_s));
+    ck_assert_invalid_arg(Htable_add_value(global_table, big_s,  NULL));
+    ck_assert_invalid_arg(Htable_add_value(NULL, NULL,  big_s));
+
+    ck_assert_invalid_arg(Htable_add_value(global_table, NULL,  big_s));
+    ck_assert_ptr_null(Htable_get_value(global_table, NULL));
+
+
+
     free((void*)big_s);
 }
 END_TEST

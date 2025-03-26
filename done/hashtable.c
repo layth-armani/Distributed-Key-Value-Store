@@ -149,7 +149,7 @@ int create_bucket(bucket_t* bucket, dkvs_const_key_t key, dkvs_const_value_t val
 }
 
 int Htable_add_value(Htable_t* table, dkvs_const_key_t key, dkvs_const_value_t value) {
-    if (table == NULL || value == NULL) {
+    if (table == NULL || value == NULL || hash_function(key, table->size) == SIZE_MAX) {
         return ERR_INVALID_ARGUMENT;
     }
 
@@ -186,7 +186,7 @@ int Htable_add_value(Htable_t* table, dkvs_const_key_t key, dkvs_const_value_t v
 
 // WARNING : CALLER SHOULD FREE THE RETURN VALUE
 dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key) {
-    if (table == NULL || key == NULL) {
+    if (table == NULL || key == NULL || hash_function(key, table->size) == SIZE_MAX) {
         return NULL;
     }
 
