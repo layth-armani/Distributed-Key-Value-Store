@@ -1,9 +1,13 @@
 # ======================================================================
 # Useful for feedback
 
-CC = clang
+CC ?= clang
 
 TARGETS = hashtable
+TARGETS += args
+TARGETS += client
+TARGETS += node-list
+TARGETS += node
 
 CFLAGS += -g
 
@@ -12,6 +16,7 @@ LDFLAGS  += -fsanitize=address
 
 EXECS=$(foreach name,$(TARGETS),unit-test-$(name))
 
+.SILENT:
 .PHONY: unit-tests all $(TARGETS) execs
 
 ## removed undesired feature
@@ -24,13 +29,7 @@ unit-tests: $(TARGETS)
 execs: $(EXECS)
 
 # target shortcuts : compile & run the tests
-hashtable: unit-test-hashtable
-	@./$^ && echo "==== " $< " SUCCEEDED =====" || { echo "==== " $< " FAILED ====="; false; }
-	@printf '\n'
-network-fake: unit-test-network-fake
-	@./$^ && echo "==== " $< " SUCCEEDED =====" || { echo "==== " $< " FAILED ====="; false; }
-	@printf '\n'
-args: unit-test-args
+$(TARGETS): %: unit-test-%
 	@./$^ && echo "==== " $< " SUCCEEDED =====" || { echo "==== " $< " FAILED ====="; false; }
 	@printf '\n'
 
@@ -45,19 +44,16 @@ LDFLAGS += -fsanitize=address
 
 LDLIBS += -lcheck -lm -lrt -pthread -lsubunit -lcrypto
 
-OBJS = 
-OBJS += $(SRC_DIR)/util.o $(SRC_DIR)/error.o
+OBJS = $(addprefix $(SRC_DIR)/,$(SRC_OBJS))
+ifneq (,$(wildcard $(SRC_DIR)/fake_network.c))
+OBJS += $(SRC_DIR)/fake_network.o
+endif
 
 # ======================================================================
-unit-test-hashtable.o: unit-test-hashtable.c $(SRC_DIR)/hashtable.h
-unit-test-hashtable: unit-test-hashtable.o $(SRC_DIR)/hashtable.o $(SRC_DIR)/error.o
+unit-test-%.o: unit-test-%.c $(SRC_DIR)/*.h
+unit-test-%: unit-test-%.o $(OBJS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDLIBS) $(LDFLAGS)
 
-# ======================================================================
-unit-test-args.o: unit-test-args.c $(SRC_DIR)/args.h
-unit-test-args: unit-test-args.o $(SRC_DIR)/args.o $(SRC_DIR)/error.o
-
-# ======================================================================
-unit-test-network-fake: unit-test-network-fake.o $(SRC_DIR)/hashtable.o $(SRC_DIR)/client.o $(SRC_DIR)/node.o $(SRC_DIR)/args.o $(SRC_DIR)/fake_network.o
 
 .PHONY: clean dist-clean reset
 

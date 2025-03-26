@@ -10,7 +10,6 @@ const char *const ERR_MESSAGES[] = {
     "I/O Error",
     "Runtime error",
     "(re|m|c)alloc failed",
-    "Not enough arguments",
     "Network error",
     "Invalid config",
     "Invalid command",

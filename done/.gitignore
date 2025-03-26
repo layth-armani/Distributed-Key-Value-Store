@@ -2,7 +2,7 @@
 *.o
 __pycache__
 dkvs-client
-fake-dkvs-client
+fake-dkvs-client*
 dkvs-dump
 dkvs-ping
 dkvs-server

@@ -1,6 +1,6 @@
 # Makefile for CS-202 course - spring 2025
 # Author: Ludovic Mermod, Jean-Cédric Chappelier & Édouard Bugnion
-# Date: March 2024
+# Date: March 2025
 
 # main targets
 
@@ -23,7 +23,8 @@ IMAGE := chappeli/cs202-feedback:latest
 # ======================================================================
 # Compiler and Link
 
-CC = clang
+export CC = clang
+
 CFLAGS += -g
 CFLAGS += -pedantic -Wall
 CFLAGS += -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wwrite-strings \
@@ -38,7 +39,8 @@ CPPFLAGS += -fsanitize=address
 LDFLAGS  += -fsanitize=address
 
 #ifdef CS212_STAFF
-CPPFLAGS += -DCS212_STAFF -DWEEK=14
+#TODO: restore: CPPFLAGS += -DCS212_STAFF -DWEEK=15
+CFLAGS += -DCS212_STAFF -DWEEK=6
 #endif
 
 ifdef DEBUG
@@ -50,7 +52,7 @@ endif
 .PHONY: all all-deferred
 
 # list of C files the .o of which shall not be automatically added to OBJS list
-EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c
+EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c
 
 SRCS = $(filter-out $(EXCLUDE_SRCS), $(wildcard *.c))
 
@@ -60,9 +62,24 @@ OBJS=$(subst .c,.o,$(SRCS))
 
 all:: all-deferred
 
+fake-dkvs-client: $(OBJS) dkvs-client.o fake_network.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+FAKE_HEADERS := $(wildcard fake*.h)
+FAKE_TARGETS := $(patsubst fake%.h,fake-dkvs-client-%,$(FAKE_HEADERS))
+
+fakes: $(FAKE_TARGETS)
+
+fake_network_%.o: fake_network.c fake%.h
+	$(CC) -c $(CFLAGS) $(LDFLAGS) -o $@ $< -include $(word 2,$^)
+
+fake-dkvs-client-%: dkvs-client.o fake_network_%.o  $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 # Computes the valid targets for `all`
 ifneq (,$(wildcard ./*dkvs-client.c))
-TARGETS = dkvs-client fake-dkvs-client
+TARGETS = fake-dkvs-client
+
 endif
 
 ifneq (,$(wildcard ./udp-test-*.c))
@@ -87,7 +104,7 @@ ifneq ($(MAKECMDGOALS),clean)
 endif
 
 clean::
-	-@/bin/rm -f *.o *~  .depend $(TARGETS)
+	-@/bin/rm -f *.o *~  .depend $(TARGETS) fake-dkvs-client-*
 	$(MAKE) -C $(TEST_DIR)/unit dist-clean
 
 new: clean all
@@ -99,13 +116,13 @@ style:
 	astyle -n -o -A8 -xt0 *.[ch]
 
 unit-tests:
-	$(MAKE) SRC_DIR=$${PWD} -B -C $(TEST_DIR)/unit
+	$(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/unit
 
 test-%:
-	$(MAKE) SRC_DIR=$${PWD} -B -C $(TEST_DIR)/unit $*
+	$(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/unit $*
 
 $(TEST_DIR)/unit/%:
-	$(MAKE) SRC_DIR=$${PWD} -B -C $(TEST_DIR)/unit unit-test-$*
+	$(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/unit unit-test-$*
 
 
 
@@ -125,9 +142,10 @@ endif
 	    '$(TEST_DIR)/unit/unit-test-$(EXE)'
 
 define e2e_test
-robot -v srcdir:$(PWD) -v datadir:$(TEST_DIR)/data $(TEST_DIR)/end-to-end/$1 ;
+$(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/end-to-end $1 ;
 endef
 end2end-tests: $(TARGETS)
+	$(call e2e_test,week02)
 
 check: unit-tests
 
