@@ -62,6 +62,20 @@ OBJS=$(subst .c,.o,$(SRCS))
 
 all:: all-deferred
 
+fake-dkvs-client: $(OBJS) dkvs-client.o fake_network.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
+FAKE_HEADERS := $(wildcard fake*.h)
+FAKE_TARGETS := $(patsubst fake%.h,fake-dkvs-client-%,$(FAKE_HEADERS))
+
+fakes: $(FAKE_TARGETS)
+
+fake_network_%.o: fake_network.c fake%.h
+	$(CC) -c $(CFLAGS) $(LDFLAGS) -o $@ $< -include $(word 2,$^)
+
+fake-dkvs-client-%: dkvs-client.o fake_network_%.o  $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 # Computes the valid targets for `all`
 ifneq (,$(wildcard ./*dkvs-client.c))
 TARGETS = fake-dkvs-client
