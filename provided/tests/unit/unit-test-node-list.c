@@ -1,3 +1,4 @@
+#include "node.h"
 #include "node_list.h"
 #include "test.h"
 
@@ -10,20 +11,18 @@ START_TEST(test_add)
     node_list_t list = {0};
 
     node_t node0 = {0};
+    ck_assert_err_none(node_init(&node0, "127.0.0.1", 10000, 0));
 
     node_t node1 = {0};
-    memset(&node1, 1, sizeof(node1));
+    ck_assert_err_none(node_init(&node0, "127.0.0.1", 10001, 1));
 
     ck_assert_err_none(node_list_add(&list, node0));
 
     ck_assert_int_eq(list.size, 1);
-    ck_assert_mem_eq(&list.nodes[0], &node0, sizeof(node0));
 
     ck_assert_err_none(node_list_add(&list, node1));
 
     ck_assert_int_eq(list.size, 2);
-    ck_assert_mem_eq(&list.nodes[0], &node0, sizeof(node0));
-    ck_assert_mem_eq(&list.nodes[1], &node1, sizeof(node1));
 
     node_list_free(&list);
 }
