@@ -57,14 +57,15 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
     size_t R = 0;
     size_t W = 0;
 
-    char** char_list = *rem_argv;
-
-
+    
+    
     if (!args || !argc || !rem_argv)
     {
         fprintf(stderr,"ERROR: ONE OF THE ARGUMENTS IS NULL\n");
         return ERR_INVALID_ARGUMENT;
     }
+    
+    char** char_list = *rem_argv;
 
     while ((*argc) > 0 && !endParse){
 
@@ -130,6 +131,9 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             --(*argc);
             endParse = 1;
         }
+
+        char_list++;
+        --(*argc);
     }
 
     if (N == 0)
