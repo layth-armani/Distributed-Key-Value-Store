@@ -118,6 +118,9 @@ style:
 unit-tests:
 	$(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/unit
 
+all-unit-tests:
+	$(MAKE) -i SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/unit
+
 test-%:
 	$(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/unit $*
 
@@ -147,7 +150,11 @@ endef
 end2end-tests: $(TARGETS)
 	$(call e2e_test,week02)
 
+all-end2end-tests: $(TARGETS)
+	- $(call e2e_test,week02)
+
 check: unit-tests
+all-tests: all-unit-tests
 
 ## --------------------------------------------------
 # target to do all checks before releasing a new version by staff
