@@ -13,11 +13,11 @@
 /**
  * @brief list of nodes
  */
-/* TODO WEEK 06:
- * Define struct node_list here
- * (and remove these three lines of comment).
- */
-typedef struct node_list node_list_t;
+typedef struct node_list{
+    size_t size;
+    size_t allocated;
+    node_t* content;
+} node_list_t;
 
 /**
  * @brief parse the DKVS_SERVERS_LIST_FILENAME file and return the corresponding

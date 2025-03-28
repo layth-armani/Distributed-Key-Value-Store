@@ -16,11 +16,9 @@
 /**
  * @brief node data structure
  */
-/* TODO WEEK 06:
- * Define struct node here
- * (and remove these three lines of comment).
- */
-typedef struct node node_t;
+typedef struct node {
+    const char *address;
+}node_t;
 
 /**
  * @brief node initialization function

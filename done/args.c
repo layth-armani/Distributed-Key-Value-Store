@@ -1,0 +1,164 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "error.h"
+#include "args.h"
+#include "util.h"
+
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
+
+/**
+ * @brief Validates if the total number of servers meets the required thresholds
+ *        for PUT and GET operations.
+ *
+ * @param args Pointer to an args_t structure containing server and operation requirements.
+ * @return int Returns 1 (true) if the total servers are sufficient for both
+ *             PUT and GET operations, otherwise returns 0 (false).
+ */
+int check_Valid_NWR (args_t* args){
+    int check = (args->total_servers >= args->put_needed) &&
+                 (args->total_servers >= args->get_needed);
+    return check;
+}
+
+
+int check_Valid_option(char* c) {
+    if (!c || (strlen(c)==0)) {
+        return 0; 
+    }
+
+    for (int i = 0; c[i] != '\0'; i++) {
+        if (c[i] < '0' || c[i] > '9') {
+            return 0; 
+        }
+    }
+
+    return 1; 
+}
+
+
+
+
+/**
+ * @brief parse optional arguments
+ * @param args (output) the args_t struct to be initialized
+ * @param supported_args OR'ed args_kind flags of supported options
+ * @param argc (output) the number of arguments remaining (after optional arguments have been parsed)
+ * @param rem_argv (output) the array of remaining arguments
+ * @return an error code
+ */
+int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_argv){
+
+
+    size_t endParse = 0;
+    size_t N = 0;
+    size_t R = 0;
+    size_t W = 0;
+
+    char** char_list = *rem_argv;
+
+
+    if (!args || !argc || !rem_argv)
+    {
+        fprintf(stderr,"ERROR: ONE OF THE ARGUMENTS IS NULL\n");
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    while ((*argc) > 0 && !endParse){
+
+        if (!strncmp(char_list[0],"-n",2) && ((TOTAL_SERVERS & supported_args) != 1))
+        {
+            
+            ++char_list;
+            --(*argc);
+            
+            
+            if (*argc == 0 || !check_Valid_option(char_list[0]))
+            {
+                fprintf(stderr,"NO ARGUMENTS FOR OPTION OR INVALID COMMAND -n \n");
+                return ERR_INVALID_COMMAND;
+            }
+            
+            
+            if ((N = atouint16(char_list[0])) <= 0)
+            {
+                return ERR_INVALID_COMMAND;
+            }
+            
+        } else if (!strncmp(char_list[0],"-w",2) && (((GET_NEEDED & supported_args) >> 1) !=1))
+        
+        {
+                        
+            if (*argc == 0 || !check_Valid_option(char_list[0]))
+            {
+                fprintf(stderr,"NO ARGUMENTS FOR OPTION OR INVALID COMMAND -w \n");
+                return ERR_INVALID_COMMAND;
+            }
+            
+            if ((W = atouint16(char_list[0])) <= 0)
+            {
+                return ERR_INVALID_COMMAND;
+            }
+            
+            
+        }
+        
+        else if (!strncmp(char_list[0],"-r",2) && (((PUT_NEEDED & supported_args) >> 2) != 1))
+        {
+                   
+            ++char_list;
+            --(*argc);
+            
+            if (*argc == 0 || !check_Valid_option(char_list[0]))
+            {
+                fprintf(stderr,"NO ARGUMENTS FOR OPTION OR INVALID COMMAND -r \n");
+                return ERR_INVALID_COMMAND;
+            }
+            
+            if ((R = atouint16(char_list[0])) == 0)
+            {
+                return ERR_INVALID_COMMAND;
+            }            
+        }
+        
+        
+        if (!strncmp(char_list[0],"--",2))
+        {
+            ++char_list;
+            --(*argc);
+            endParse = 1;
+        }
+    }
+
+    if (N == 0)
+    {
+        if (W != 0 && R!=0)
+        {
+            N = MAX(R,W);
+        }
+        else{
+            N = DKVS_DEFAULT_N;
+        }
+    
+    }
+        
+    if (R == 0)
+    {
+        R = MIN(DKVS_DEFAULT_R,N);
+    }
+    if (W == 0)
+    {
+        W = MIN(DKVS_DEFAULT_W,N);
+    }
+
+    args->total_servers = N;
+    args->get_needed = R;
+    args->put_needed = W;
+
+    rem_argv = &char_list;
+
+    return ERR_NONE;
+}
+
