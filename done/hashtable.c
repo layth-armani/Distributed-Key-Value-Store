@@ -213,25 +213,21 @@ dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key) {
 }
 
 void Htable_print(const Htable_t* table) {
-    if (table == NULL) {
-        printf("Hashtable is NULL.\n");
+    if (table == NULL || table->size==0) {
+        printf("Hashtable is NULL or Empty.\n");
         return;
     }
 
     for (size_t i = 0; i < table->size; i++) {
         bucket_t* bucket = &table->content[i];
-        printf("Bucket %zu: ", i);
 
-        if (bucket->kv_pair == NULL) {
-            printf("Empty\n");
-        } else {
-            while (bucket != NULL) {
-                if (bucket->kv_pair != NULL) {
-                    printf("[Key: %s, Value: %s] -> ", bucket->kv_pair->key, bucket->kv_pair->value);
-                }
-                bucket = bucket->collision;
-            }
-            printf("NULL\n");
+        while (bucket != NULL && bucket->kv_pair != NULL ) {
+           
+            printf(" %s : %s ->  ", bucket->kv_pair->key, bucket->kv_pair->value);                   
+    
+            bucket = bucket->collision;
         }
+        printf("\n");
+        
     }
 }
