@@ -16,10 +16,12 @@
 /**
  * @brief client state
  */
-/* TODO WEEK 06:
- * Here define the struct client type
- * (and remove these three lines of then-useless comment).
- */
+struct client
+{
+    args_t* args;
+    ring_t* ring;
+};
+
 typedef struct client client_t;
 
 /**
