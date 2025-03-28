@@ -14,7 +14,7 @@ START_TEST(test_add)
     ck_assert_err_none(node_init(&node0, "127.0.0.1", 10000, 0));
 
     node_t node1 = {0};
-    ck_assert_err_none(node_init(&node0, "127.0.0.1", 10001, 1));
+    ck_assert_err_none(node_init(&node1, "127.0.0.1", 10001, 1));
 
     ck_assert_err_none(node_list_add(&list, node0));
 
