@@ -1,6 +1,7 @@
 #include <openssl/sha.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "hashtable.h"
 #include "error.h"
 #include "node.h"
@@ -16,11 +17,12 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
         return ERR_OUT_OF_MEMORY;
     }
     strncpy(address,ip,strlen(ip)+1);
-    node->address = address;
+    node->addr = address;
     return ERR_NONE;
 }
 
 void node_end(node_t *node){
+    if(node != NULL && node->addr !=NULL)free((void*)node->addr);
     return;
 }
 

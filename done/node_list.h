@@ -10,14 +10,16 @@
 
 #include "node.h"
 
+
+struct node_list{
+    size_t size;
+    size_t allocated;
+    node_t* nodes;
+};
 /**
  * @brief list of nodes
  */
-typedef struct node_list{
-    size_t size;
-    size_t allocated;
-    node_t* content;
-} node_list_t;
+typedef struct node_list node_list_t;
 
 /**
  * @brief parse the DKVS_SERVERS_LIST_FILENAME file and return the corresponding

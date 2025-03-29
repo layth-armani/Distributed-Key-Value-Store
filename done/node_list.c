@@ -10,8 +10,8 @@ node_list_t* node_list_construct(node_list_t* list) {
         return NULL;
     }
     node_list_t result = { 0, 0, NULL };
-    result.content = calloc(NODE_LIST_PADDING, sizeof(node_t));
-    if (result.content != NULL) {
+    result.nodes = calloc(NODE_LIST_PADDING, sizeof(node_t));
+    if (result.nodes != NULL) {
         result.allocated = NODE_LIST_PADDING;
     } 
     else {
@@ -27,7 +27,7 @@ int get_nodes(node_list_t *nodes){
         fprintf(stderr, "Invalid Arguments for getting from a node list: Returning ERR_INVALID_ARGUMENT\n");
         return ERR_INVALID_ARGUMENT;
     }
-    if(nodes->allocated == 0 || nodes->content == NULL){
+    if(nodes->allocated == 0 || nodes->nodes == NULL){
         nodes = node_list_construct(nodes);
         if(nodes == NULL){
             return ERR_OUT_OF_MEMORY;
@@ -45,7 +45,7 @@ node_list_t* node_list_enlarge(node_list_t* list) {
     if (list != NULL) {
         node_list_t result = *list;
         result.allocated += NODE_LIST_PADDING;
-        if ((result.allocated > SIZE_MAX / sizeof(node_t)) || ((result.content = realloc(result.content, result.allocated * sizeof(node_t)))== NULL)) {
+        if ((result.allocated > SIZE_MAX / sizeof(node_t)) || ((result.nodes = realloc(result.nodes, result.allocated * sizeof(node_t)))== NULL)) {
             return NULL; 
         }
         *list = result;
@@ -66,7 +66,7 @@ int node_list_add(node_list_t *list, node_t node){
             return ERR_OUT_OF_MEMORY;
         }
     }
-    list->content[list->size] = node;
+    list->nodes[list->size] = node;
     ++(list->size);
     return ERR_NONE;
 }
@@ -75,9 +75,9 @@ int node_list_add(node_list_t *list, node_t node){
 
 
 void node_list_free(node_list_t *list){
-    if ((list != NULL) && (list->content != NULL)) {
-        free(list->content);
-        list->content = NULL;
+    if ((list != NULL) && (list->nodes != NULL)) {
+        free(list->nodes);
+        list->nodes = NULL;
         list->size = 0;
         list->allocated = 0;
     }

@@ -1,4 +1,5 @@
 #include "node_list.h"
+#include "node.h"
 #include "test.h"
 
 #include <arpa/inet.h>

@@ -13,12 +13,15 @@
 #include "hashtable.h"
 #include "error.h"
 
+
+struct node {
+    const char *addr;
+};
 /**
  * @brief node data structure
  */
-typedef struct node {
-    const char *address;
-}node_t;
+typedef struct node node_t;
+
 
 /**
  * @brief node initialization function
