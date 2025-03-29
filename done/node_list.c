@@ -6,15 +6,6 @@
 #define NODE_LIST_PADDING 128
 
 node_list_t* node_list_construct(node_list_t* list) {
-    if (list == NULL){
-        list = malloc(sizeof(node_list_t));
-        if (!list)
-        {
-            fprintf(stderr, "COULDN'T ALLOCATE MEMORY FOR NODE_LIST\n");
-            return NULL;
-        }
-        
-    }
     node_list_t result = { 0, 0, NULL };
     result.nodes = calloc(NODE_LIST_PADDING, sizeof(node_t));
     if (result.nodes != NULL) {
@@ -29,7 +20,8 @@ node_list_t* node_list_construct(node_list_t* list) {
 
 
 int get_nodes(node_list_t *nodes){
-    if(nodes == NULL || nodes->allocated == 0 || nodes->nodes == NULL){
+    if(nodes == NULL)return ERR_INVALID_ARGUMENT;
+    if(nodes->allocated == 0 || nodes->nodes == NULL){
         nodes = node_list_construct(nodes);
         if(nodes == NULL){
             return ERR_OUT_OF_MEMORY;
@@ -77,8 +69,13 @@ int node_list_add(node_list_t *list, node_t node){
 
 
 void node_list_free(node_list_t *list){
-    if ((list != NULL) && (list->nodes != NULL)) {
 
+    if ((list != NULL)) {
+        if ((list->nodes != NULL)) {
+            free(list);
+            return;
+        }
+        
         for (size_t i = 0; i < list->size; i++)
         {
             node_end(list->nodes + i);
