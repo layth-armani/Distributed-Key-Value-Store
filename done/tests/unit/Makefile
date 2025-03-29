@@ -4,8 +4,8 @@
 CC ?= clang
 
 TARGETS = hashtable
-#TARGETS += args
-#TARGETS += client
+TARGETS += args
+TARGETS += client
 TARGETS += node-list
 TARGETS += node
 
