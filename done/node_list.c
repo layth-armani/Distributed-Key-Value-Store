@@ -71,8 +71,8 @@ int node_list_add(node_list_t *list, node_t node){
 void node_list_free(node_list_t *list){
 
     if ((list != NULL)) {
-        if ((list->nodes != NULL)) {
-            free(list);
+        if (!(list->nodes)) {
+            //free(list);
             return;
         }
         
@@ -86,7 +86,7 @@ void node_list_free(node_list_t *list){
         list->size = 0;
         list->allocated = 0;
 
-        free(list);
+        //free(list);
     }
 }
 

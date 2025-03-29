@@ -34,12 +34,18 @@ struct command_mapping {
 
 // commands mapping
 int help(client_t *client _unused, int argc _unused, char **argv _unused);
+int put(client_t *client, int argc, char **argv);
+int get(client_t *client, int argc, char **argv);
+
 static struct command_mapping commands[] = {
 /* TODO WEEK 06:
  * Ajouter ici les commandes get et put avec leur paramètres nécessaires.
  * (et supprimer ces trois lignes de commentaire).
  */
-    { "help"  , help             , 0                                      , -1, INT_MAX }
+    { "help"  , help             , 0                                      , -1, INT_MAX },
+    { "put"   , put             , 2                                      , -1, INT_MAX },
+    { "get"   , get             , 1                                      , -1, INT_MAX }
+
 };
 
 // ======================================================================
@@ -58,6 +64,13 @@ int help(client_t *client _unused, int argc _unused, char **argv _unused)
     puts("        it returns the index of the searched value inside the reference value (starting from 0) or -1 if the value is not found.");
 
     return ERR_NONE;
+}
+
+int put(client_t *client, int argc, char **argv){
+    return cli_client_get(client, argc,argv);
+}
+int get(client_t *client, int argc, char **argv){
+    return cli_client_get(client, argc,argv);
 }
 
 // ======================================================================
