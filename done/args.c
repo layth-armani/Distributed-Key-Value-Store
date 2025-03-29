@@ -67,9 +67,15 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
     
     char** char_list = *rem_argv;
 
+    int option_N = (TOTAL_SERVERS & supported_args ) == 1;
+    int option_R = (GET_NEEDED & supported_args) == 2;
+    int option_W = (PUT_NEEDED & supported_args) == 4;
+
+    
+
     while ((*argc) > 0 && !endParse){
 
-        if (!strncmp(char_list[0],"-n",2) && ((TOTAL_SERVERS & supported_args) != 1))
+        if (!strncmp(char_list[0],"-n",2) && option_N)
         {
             
             ++char_list;
@@ -88,9 +94,13 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
                 return ERR_INVALID_COMMAND;
             }
             
-        } else if (!strncmp(char_list[0],"-w",2) && (((GET_NEEDED & supported_args) >> 1) !=1))
+        } 
+
+        else if (!strncmp(char_list[0],"-w",2) && option_W)
         
         {
+            ++char_list;
+            --(*argc);
                         
             if (*argc == 0 || !check_Valid_option(char_list[0]))
             {
@@ -106,7 +116,7 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             
         }
         
-        else if (!strncmp(char_list[0],"-r",2) && (((PUT_NEEDED & supported_args) >> 2) != 1))
+        else if (!strncmp(char_list[0],"-r",2) && option_R)
         {
                    
             ++char_list;
@@ -138,7 +148,7 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
 
     if (N == 0)
     {
-        if (W != 0 && R!=0)
+        if (W != 0 || R!=0)
         {
             N = MAX(R,W);
         }
@@ -157,11 +167,19 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
         W = MIN(DKVS_DEFAULT_W,N);
     }
 
+    if (R > N || W > N)
+    {
+        return ERR_INVALID_COMMAND;
+    }
+    
+
+
+
     args->total_servers = N;
     args->get_needed = R;
     args->put_needed = W;
 
-    rem_argv = &char_list;
+    *rem_argv = char_list;
 
     return ERR_NONE;
 }

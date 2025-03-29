@@ -18,7 +18,7 @@
  */
 struct client
 {
-    args_t* args;
+    args_t args;
     ring_t* ring;
 };
 
