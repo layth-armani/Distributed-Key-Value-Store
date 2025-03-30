@@ -22,7 +22,7 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
 }
 
 void node_end(node_t *node){
-    if(node != NULL && node->addr !=NULL)free((void*)node->addr);
+    if(node != NULL) free((void*)node->addr);
     return;
 }
 

@@ -6,30 +6,41 @@
 #define NODE_LIST_PADDING 128
 
 node_list_t* node_list_construct(node_list_t* list) {
+
     node_list_t result = { 0, 0, NULL };
+
     result.nodes = calloc(NODE_LIST_PADDING, sizeof(node_t));
+
     if (result.nodes != NULL) {
         result.allocated = NODE_LIST_PADDING;
     } 
     else {
         return NULL;
     }
+
     *list = result;
     return list;
 }
 
 
 int get_nodes(node_list_t *nodes){
-    if(nodes == NULL)return ERR_INVALID_ARGUMENT;
+
+    if(nodes == NULL) return ERR_INVALID_ARGUMENT;
+
     if(nodes->allocated == 0 || nodes->nodes == NULL){
+
         nodes = node_list_construct(nodes);
+
         if(nodes == NULL){
             return ERR_OUT_OF_MEMORY;
         }
+
         node_t node;
         int test = node_init(&node, DKVS_DEFAULT_IP, DKVS_DEFAULT_PORT, 0);
+
         if (test != ERR_NONE) return test;
         node_list_add(nodes,node);
+
     }
     return ERR_NONE; 
 }
@@ -37,9 +48,13 @@ int get_nodes(node_list_t *nodes){
 
 node_list_t* node_list_enlarge(node_list_t* list) {
     if (list != NULL) {
+
         node_list_t result = *list;
         result.allocated += NODE_LIST_PADDING;
-        if ((result.allocated > SIZE_MAX / sizeof(node_t)) || ((result.nodes = realloc(result.nodes, result.allocated * sizeof(node_t)))== NULL)) {
+
+        if ((result.allocated > SIZE_MAX / sizeof(node_t)) || 
+            ((result.nodes = realloc(result.nodes, result.allocated * sizeof(node_t))) == NULL)) 
+        {
             return NULL; 
         }
         *list = result;
@@ -54,7 +69,7 @@ int node_list_add(node_list_t *list, node_t node){
         return ERR_INVALID_ARGUMENT;
     }
 
-    while (list->size >=list->allocated) {
+    while (list->size >= list->allocated) {
         if (node_list_enlarge(list) == NULL) {
             fprintf(stderr, "Couldn't allocate additional memory to add a node to a node list: Returning ERR_OUT_OF_MEMORY\n");
             return ERR_OUT_OF_MEMORY;
@@ -70,23 +85,17 @@ int node_list_add(node_list_t *list, node_t node){
 
 void node_list_free(node_list_t *list){
 
-    if ((list != NULL)) {
-        if (!(list->nodes)) {
-            //free(list);
-            return;
-        }
-        
-        for (size_t i = 0; i < list->size; i++)
-        {
-            node_end(list->nodes + i);
+    if (list == NULL) {
+        return; 
+    }   
+
+    if (list->nodes != NULL) {
+        for (size_t i = 0; i < list->size; i++) {
+            node_t *f = list->nodes + i;
+            node_end(f);
         }
         free(list->nodes);
-
         list->nodes = NULL;
-        list->size = 0;
-        list->allocated = 0;
-
-        //free(list);
     }
 }
 
