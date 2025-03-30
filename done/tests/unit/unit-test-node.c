@@ -30,6 +30,7 @@ START_TEST(test_node_init_assign_addr)
     ck_assert_err_none(node_init(&node, ip, 1234, 1));
 
     ck_assert_str_eq(ip, node.addr);
+
     node_end(&node);
 }
 END_TEST
