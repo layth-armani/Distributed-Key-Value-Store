@@ -80,7 +80,7 @@ class DKVSTests(unittest.TestCase):
                 file.write(" ".join(s) + "\n")
 
     def client(self, *args, w=None, r=None, n=None, fake=None):
-        cmd = [f"{TMP_DIR}/{f"{FAKE_EXE}{fake}" if fake else EXE}"]
+        cmd = [f"{TMP_DIR}/{FAKE_EXE}{fake}" if fake else f"{TMP_DIR}/{EXE}"]
         if len(args) > 0:
             cmd.append(args[0])
 
