@@ -13,5 +13,4 @@ int ring_init(ring_t *ring){
 
 void ring_free(ring_t *ring){
     node_list_free(ring);
-    free(ring);
 }
