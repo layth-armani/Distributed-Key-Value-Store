@@ -19,6 +19,9 @@ int cli_client_get(client_t *client, int argc, char **argv){
     strncpy(key_copy,argv[0], strlen(argv[0])+1);
     key = key_copy;
 
+    argv++;
+    argc--;
+
     char** value = malloc(sizeof(dkvs_const_value_t));
     if(value == NULL){
         return ERR_OUT_OF_MEMORY;
