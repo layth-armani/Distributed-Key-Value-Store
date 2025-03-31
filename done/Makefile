@@ -23,9 +23,9 @@ IMAGE := chappeli/cs202-feedback:latest
 # ======================================================================
 # Compiler and Link
 
-export CC = clang
+export CC = gcc
 
-CFLAGS += -g
+CFLAGS += -g -fanalyzer
 CFLAGS += -pedantic -Wall
 CFLAGS += -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wwrite-strings \
 -Wconversion -Wunreachable-code -Wcast-qual -W -Wformat=2 -Winit-self -Wuninitialized
