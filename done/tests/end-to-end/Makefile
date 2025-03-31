@@ -1,6 +1,6 @@
 .PHONY: test
 
-CC ?= clang
+CC ?= gcc
 DATA_DIR ?= ../data/
 SRC_DIR  ?= ../../done
 CFLAGS  += '-I$(SRC_DIR)' -DCS202_TEST -DDATA_DIR='"$(DATA_DIR)"'

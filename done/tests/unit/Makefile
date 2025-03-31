@@ -1,7 +1,7 @@
 # ======================================================================
 # Useful for feedback
 
-CC ?= clang
+CC ?= gcc
 
 TARGETS = hashtable
 TARGETS += args
