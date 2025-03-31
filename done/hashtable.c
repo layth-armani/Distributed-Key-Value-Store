@@ -131,10 +131,18 @@ int override_value(bucket_t* bucket, dkvs_const_key_t key, dkvs_const_value_t ne
 int create_bucket(bucket_t* bucket, dkvs_const_key_t key, dkvs_const_value_t value) {
     // Build new KV pair
     kv_pair_t* new_pair = calloc(1, sizeof(kv_pair_t));
+    if (new_pair == NULL) {
+        fprintf(stderr, "Failed to allocate memory for kv_pair\n");
+        return ERR_OUT_OF_MEMORY;
+    }
+
     new_pair->key = calloc(strlen(key) + 1, sizeof(char));
     new_pair->value = calloc(strlen(value) + 1, sizeof(char));
 
-    if (new_pair == NULL || new_pair->key == NULL || new_pair->value == NULL) {
+    if (new_pair->key == NULL || new_pair->value == NULL) {
+        free(new_pair->value);
+        free(new_pair->key);
+        free(new_pair);
         fprintf(stderr, "Failed to allocate memory for kv_pair\n");
         return ERR_OUT_OF_MEMORY;
     }
