@@ -52,6 +52,7 @@ Htable_t* Htable_construct(size_t size) {
 
     if ((result->content = calloc(size, sizeof(bucket_t))) == NULL) {
         fprintf(stderr, "Couldn't allocate memory for the Hashtable content: Returning NULL\n");
+        free(result);
         return NULL;
     }
 
