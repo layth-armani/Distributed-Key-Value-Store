@@ -236,7 +236,11 @@ void Htable_print(const Htable_t* table) {
     
             bucket = bucket->collision;
         }
-        printf("\n");
+
+        if (bucket ==NULL) {
+            printf("\n");
+        }
+        
         
     }
 }
