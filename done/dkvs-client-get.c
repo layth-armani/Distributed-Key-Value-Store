@@ -9,11 +9,18 @@
 int cli_client_get(client_t *client, int argc, char **argv){
     if(client == NULL || argc == 0 || argv == NULL || argv[0] == NULL || strlen(argv[0]) > MAX_MSG_ELEM_SIZE){
         printf("Reached line 11 \n");
+        printf("argc: %d \n",argc);
         printf("argv[0]: %s \n", argv[0]);
+        printf("argv[1]: %s \n", argv[1]);
+        printf("argv[2]: %s \n", argv[2]);
+        printf("argv[3]: %s \n", argv[3]);
+        printf("argv[4]: %s \n", argv[4]);
+        printf("argv[5]: %s \n", argv[5]);
         printf("FAIL, ERROR %s\n", ERR_MSG(ERR_INVALID_ARGUMENT));
         return ERR_INVALID_ARGUMENT;
     }
     printf("Reached line 16 \n");
+    printf("argc: %d \n",argc);
     printf("argv[0]: %s \n", argv[0]);
     printf("argv[1]: %s \n", argv[1]);
     printf("argv[2]: %s \n", argv[2]);
