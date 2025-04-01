@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
                         ret = ERR_INVALID_COMMAND;
                     } else {
                         ret = commands[i].cmd(&client, argc, argv);
+                        fprintf(stderr, "After command call : ERROR: %s\n", ERR_MSG(ret));
                     }
                     client_end(&client);
                 }

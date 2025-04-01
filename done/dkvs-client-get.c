@@ -7,7 +7,14 @@
 
 
 int cli_client_get(client_t *client, int argc, char **argv){
-    if(client == NULL || argc == 0 || argv == NULL || argv[0] == NULL || strlen(argv[0]) > MAX_MSG_ELEM_SIZE){
+    if (argv == NULL || argv[0] == NULL)
+    {
+        printf("FAIL, ERROR %s  %u \n", ERR_MSG(ERR_INVALID_COMMAND), ERR_INVALID_COMMAND&255);
+
+        return ERR_INVALID_COMMAND;
+    }
+    
+    if(client == NULL || argc == 0 || strlen(argv[0]) > MAX_MSG_ELEM_SIZE){
         printf("Reached line 11 \n");
         printf("argc: %d \n",argc);
         printf("argv[0]: %s \n", argv[0]);
@@ -42,9 +49,9 @@ int cli_client_get(client_t *client, int argc, char **argv){
     argv++;
     argc--;
 
-    char** value = malloc(sizeof(dkvs_const_value_t));
+    dkvs_value_t* value = calloc(1, sizeof(value));
     if(value == NULL){
-        free((void*)key);
+        free((void*)key_copy);
         printf("FAIL, ERROR %s\n", ERR_MSG(ERR_OUT_OF_MEMORY));
         return ERR_OUT_OF_MEMORY;
     }
@@ -52,7 +59,8 @@ int cli_client_get(client_t *client, int argc, char **argv){
     int ret = network_get(client, key, value);
     if (ret == ERR_NONE) printf("OK %s \n", *value);
     else printf("FAIL, ERROR %s\n", ERR_MSG(ret));
-    free((void*)key);
+    free((void*)key_copy);
+    free((void*)*value);
     free((void*)value);
     return ret;
 }
