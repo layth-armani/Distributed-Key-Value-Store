@@ -80,7 +80,11 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             if ((N = atouint16(char_list[0])) <= 0) {
                 return ERR_INVALID_COMMAND;
             }
-        } else if (check_valid_flag(char_list[0], "-w", option_W)) {
+            ++char_list;
+            --(*argc);
+            
+        } 
+        else if (check_valid_flag(char_list[0], "-w", option_W)) {
             --(*argc);
             ++char_list;
             if (*argc == 0 || !check_valid_option(char_list[0])) {
@@ -90,7 +94,11 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             if ((W = atouint16(char_list[0])) <= 0) {
                 return ERR_INVALID_COMMAND;
             }
-        } else if (check_valid_flag(char_list[0], "-r", option_R)) {
+            ++char_list;
+            --(*argc);
+
+        } 
+        else if (check_valid_flag(char_list[0], "-r", option_R)) {
             --(*argc);
             ++char_list;
 
@@ -101,14 +109,18 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             if ((R = atouint16(char_list[0])) <= 0) {
                 return ERR_INVALID_COMMAND;
             }
+            ++char_list;
+            --(*argc);
+
         } else if (!strncmp(char_list[0], "--", 2)) {
             ++char_list;
             --(*argc);
             endParse = 1;
         }
 
-        ++char_list;
-        --(*argc);
+        
+
+        
     }
 
     if (N == 0) {
