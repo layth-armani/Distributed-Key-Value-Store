@@ -231,16 +231,8 @@ void Htable_print(const Htable_t* table) {
         bucket_t* bucket = &table->content[i];
 
         while (bucket != NULL && bucket->kv_pair != NULL ) {
-           
-            printf(" %s : %s ->  ", bucket->kv_pair->key, bucket->kv_pair->value);                   
-    
+            printf("%s: %s\n", bucket->kv_pair->key, bucket->kv_pair->value);                   
             bucket = bucket->collision;
         }
-
-        if (bucket ==NULL) {
-            printf("\n");
-        }
-        
-        
     }
 }

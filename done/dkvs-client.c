@@ -67,15 +67,11 @@ int help(client_t *client _unused, int argc _unused, char **argv _unused)
 }
 
 int put(client_t *client, int argc, char **argv){
-    fprintf(stderr, "In DKVS-Client::put \n");
     int ret = cli_client_put(client, argc,argv);
-    fprintf(stderr, "ERROR: %s\n", ERR_MSG(ret));
     return ret;
 }
 int get(client_t *client, int argc, char **argv){
-    fprintf(stderr, "In DKVS-Client::get \n");
     int ret = cli_client_get(client, argc,argv);
-    fprintf(stderr, "ERROR: %s\n", ERR_MSG(ret));
     return ret;
 }
 
@@ -83,9 +79,7 @@ int get(client_t *client, int argc, char **argv){
 int main(int argc, char *argv[])
 {
     int ret = ERR_NONE;
-    fprintf(stderr,"Main starts \n");
     if (argc < 2) {
-        fprintf(stderr,"Too few arguments \n");
         ret = ERR_INVALID_COMMAND;      
     } else {
         char *const cmd = argv[CMD_ARGC];
@@ -105,27 +99,23 @@ int main(int argc, char *argv[])
                       &client, commands[i].supported_args, &argc, &argv);
                 if (ret == ERR_NONE) {
                     if (argc > commands[i].max_argc) {
-                        fprintf(stderr, "Over max \n");
                         ret = ERR_INVALID_COMMAND;
                     } else if (argc < commands[i].min_argc) {
-                        fprintf(stderr,"Under min \n");
                         ret = ERR_INVALID_COMMAND;
                     } else {
                         ret = commands[i].cmd(&client, argc, argv);
-                        fprintf(stderr, "After command call : ERROR: %s\n", ERR_MSG(ret));
                     }
                     client_end(&client);
                 }
             }
         }
         if (!found) {
-            fprintf(stderr,"Not found \n");
             ret = ERR_INVALID_COMMAND;
         }
     }
 
     if (ret) {
-        fprintf(stderr, "End of  main : ERROR: %s\n", ERR_MSG(ret));
+        fprintf(stderr, "ERROR: %s\n", ERR_MSG(ret));
         help(NULL, argc, argv);
     }
 

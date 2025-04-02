@@ -10,7 +10,6 @@ const char *const ERR_MESSAGES[] = {
     "I/O Error",
     "Runtime error",
     "(re|m|c)alloc failed",
-    "Not enough arguments",
     "Network error",
     "Invalid config",
     "Invalid command",
@@ -20,3 +19,9 @@ const char *const ERR_MESSAGES[] = {
     "Threading error",
     "no error (shall not be displayed)" // ERR_LAST
 };
+
+/*
+ "Not enough arguments",   
+  was at line 13 between "(re|m|c)alloc failed", and "Network error", makes the ERR_MSG(err) utility in error.h misbehave,
+  furthermore has no corresponding error code thus far.
+*/
