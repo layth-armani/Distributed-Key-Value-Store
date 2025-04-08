@@ -31,6 +31,7 @@ atouint ## N(const char* str) \
 
 define_atouintN(16)
 define_atouintN(32)
+define_atouintN(64)
 
 /* function strnstr() is borrowed from FreeBSD:
  *

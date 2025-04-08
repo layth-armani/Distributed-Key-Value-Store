@@ -11,8 +11,10 @@ SERVER_EXE = f"./dkvs-server"
 FAKE_EXE = f"./fake-dkvs-client-"
 TMP_DIR = f"/tmp/cs202"
 
-
 class DKVSTests(unittest.TestCase):
+    FAIL_REGEX=r"FAIL\n"
+    OK_REGEX=r"OK$"
+
     def setUp(self):
         self.commands = []
         self.running_servers = []
@@ -31,6 +33,9 @@ class DKVSTests(unittest.TestCase):
             ["127.0.0.1", "1234"], ["127.0.0.1" "1235"], ["127.0.0.1", "1236"]
         )
 
+    def nice_format(self, command):
+        return ' '.join(['"' + word  + '"' if (not word or ' ' in word) else word for word in command])
+
     def tearDown(self):
         result = self._outcome.result
         ok = all(test != self for test, text in result.errors + result.failures)
@@ -40,8 +45,8 @@ class DKVSTests(unittest.TestCase):
                 self,
                 failure[1]
                 + "\n === TO REPRODUCE, RUN ===\n"
-                + "\n".join([f"{' '.join(cmd)}" for cmd in self.commands])
-                + "\n",
+                + "\n".join([f"{self.nice_format(cmd)}" for cmd in self.commands])
+                +"\n",
             )
 
         for serv in self.running_servers:
@@ -52,10 +57,13 @@ class DKVSTests(unittest.TestCase):
         self,
         actual,
         name,
+        context=None
     ):
         expected = error_code(name)
+        message = f"expected {name}, got {error_name(actual)}"
+        if context: message = message + context
         self.assertEqual(
-            actual, expected, msg=f"expected {name}, got {error_name(actual)}"
+            actual, expected, msg=message
         )
 
     def assertErrNotEquals(
@@ -72,7 +80,7 @@ class DKVSTests(unittest.TestCase):
         (ret, out, err) = self.client("get", key, fake=fake)
 
         self.assertErr(ret, "ERR_NONE")
-        self.assertRegex(out, f"OK\\s*{value}$")
+        self.assertRegex(out, f"\\nOK\\s+{value}$") if value else self.assertRegex(out, f"\\nOK\\s*$")
 
     def create_server_file(self, *servers):
         with open(f"{TMP_DIR}/server.txt", "w") as file:
@@ -110,17 +118,25 @@ class DKVSTests(unittest.TestCase):
         self.commands.append(cmd + ["&"])
         self.running_servers.append(subprocess.Popen(cmd, cwd=TMP_DIR))
 
-    def parse_fake_output(self, out: str):
+    def parse_fake_output(self, out: str, get_old_map=False):
         lines = out.splitlines()
-        hashmap = {}
+        oldmap = {}
+        newmap = {}
 
-        while not "end of fake network init" in lines[0]:
+        while len(lines) > 0 and not "end of fake network init" in lines[0]:
+            kv = lines[0].split(": ", 1)
+            if len(kv) > 1:
+                oldmap[kv[0]] = kv[1]
             lines = lines[1:]
         lines = lines[1:]
 
-        while lines[0] != "--------------------------------":
+        while len(lines) > 0 and lines[0] != "--------------------------------":
             kv = lines[0].split(": ", 1)
-            hashmap[kv[0]] = kv[1]
+            newmap[kv[0]] = kv[1]
             lines = lines[1:]
 
-        return hashmap
+        if get_old_map:
+            return newmap, oldmap
+        else:
+            return newmap
+
