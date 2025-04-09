@@ -1,4 +1,5 @@
 .PHONY: test
+.SILENT:
 
 CC ?= gcc
 DATA_DIR ?= ../data/
@@ -19,10 +20,10 @@ FAKE_TARGETS := $(patsubst fake%.h,fake-dkvs-client-%,$(FAKE_HEADERS))
 
 PROMPT = '==== end-to-end test'
 
-test: week02
+test: week02 week03-find week03-substr week03-cat
 
-week02: week02.py fakes
-	@python week02.py && echo $(PROMPT) $@ "SUCCEEDED =====" || { echo $(PROMPT) $@ " FAILED ====="; false; }
+week%: week%.py fakes
+ 	@python $< && echo $(PROMPT) $@ "SUCCEEDED =====" || { echo $(PROMPT) $@ " FAILED ====="; false; }
 	@printf '\n'
 
 fakes: $(FAKE_TARGETS)

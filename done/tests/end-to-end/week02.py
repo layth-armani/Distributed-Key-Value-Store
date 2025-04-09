@@ -17,7 +17,7 @@ class Week02(DKVSTests):
     def test_get_on_empty_dkvs_should_fail(self):
         (ret, out, err) = self.client("get", "abc", fake="1")
         self.assertErr(ret, "ERR_NOT_FOUND")
-        self.assertRegex(out, "FAIL")
+        self.assertRegex(out, self.FAIL_REGEX)
 
     def test_get_value(self):
         self.assertGetEquals("ab", "hello ab", fake="2")
@@ -47,7 +47,7 @@ class Week02(DKVSTests):
         )
 
         self.assertErr(ret, "ERR_NONE")
-        self.assertRegex(out, "OK$")
+        self.assertRegex(out, self.OK_REGEX)
 
     def test_put_replace_existing(self):
         (ret, out, err) = self.client("put", "a", "bcd", fake="2")
@@ -76,7 +76,7 @@ class Week02(DKVSTests):
         )
 
         self.assertErr(ret, "ERR_NONE")
-        self.assertRegex(out, "OK$")
+        self.assertRegex(out, self.OK_REGEX)
 
     def test_put_empty_value(self):
         (ret, out, err) = self.client("put", "empty", "", fake="1")
@@ -89,7 +89,7 @@ class Week02(DKVSTests):
         )
 
         self.assertErr(ret, "ERR_NONE")
-        self.assertRegex(out, "OK$")
+        self.assertRegex(out, self.OK_REGEX)
 
     def test_get_empty_key(self):
         self.assertGetEquals("", "empty", fake="3")

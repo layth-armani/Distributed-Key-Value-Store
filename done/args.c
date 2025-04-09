@@ -77,7 +77,7 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
                 fprintf(stderr, "NO ARGUMENTS FOR OPTION OR INVALID COMMAND -n\n");
                 return ERR_INVALID_COMMAND;
             }
-            if ((N = atouint16(char_list[0])) <= 0) {
+            if ((N = atouint32(char_list[0])) <= 0) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;
@@ -91,7 +91,7 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
                 fprintf(stderr, "NO ARGUMENTS FOR OPTION OR INVALID COMMAND -w\n");
                 return ERR_INVALID_COMMAND;
             }
-            if ((W = atouint16(char_list[0])) <= 0) {
+            if ((W = atouint32(char_list[0])) <= 0) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;
@@ -106,7 +106,7 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
                 fprintf(stderr, "NO ARGUMENTS FOR OPTION OR INVALID COMMAND -r\n");
                 return ERR_INVALID_COMMAND;
             }
-            if ((R = atouint16(char_list[0])) <= 0) {
+            if ((R = atouint32(char_list[0])) <= 0) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;

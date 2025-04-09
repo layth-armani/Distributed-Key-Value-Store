@@ -73,6 +73,14 @@ uint16_t atouint16(const char* str);
 uint32_t atouint32(const char* str);
 
 /**
+  * @brief String to uint64_t conversion function
+  *
+  * @param str a string containing some integer value to be extracted
+  * @return converted value in uint64_t format
+  */
+ uint64_t atouint64(const char* str);
+ 
+/**
  * @brief Find the first occurrence of find in s, where the search is limited to the
  *        first slen characters of s.
  * @param str  a string to search into

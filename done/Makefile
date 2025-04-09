@@ -40,7 +40,7 @@ LDFLAGS  += -fsanitize=address
 
 #ifdef CS212_STAFF
 #TODO: restore: CPPFLAGS += -DCS212_STAFF -DWEEK=15
-CFLAGS += -DCS212_STAFF -DWEEK=6
+CFLAGS += -DCS212_STAFF -DWEEK=8
 #endif
 
 ifdef DEBUG
@@ -79,6 +79,7 @@ fake-dkvs-client-%: dkvs-client.o fake_network_%.o  $(OBJS)
 # Computes the valid targets for `all`
 ifneq (,$(wildcard ./*dkvs-client.c))
 TARGETS = fake-dkvs-client
+TARGETS += $(FAKE_TARGETS)
 
 endif
 
@@ -106,6 +107,7 @@ endif
 clean::
 	-@/bin/rm -f *.o *~  .depend $(TARGETS) fake-dkvs-client-*
 	$(MAKE) -C $(TEST_DIR)/unit dist-clean
+	$(MAKE) -C $(TEST_DIR)/end-to-end clean
 
 new: clean all
 
@@ -149,12 +151,19 @@ $(MAKE) SRC_DIR=$${PWD} SRC_OBJS="$(OBJS)" -B -C $(TEST_DIR)/end-to-end $1 ;
 endef
 end2end-tests: $(TARGETS)
 	$(call e2e_test,week02)
+	$(call e2e_test,week03-find)
+ 	$(call e2e_test,week03-substr)
+ 	$(call e2e_test,week03-cat)
+ 
 
 all-end2end-tests: $(TARGETS)
 	- $(call e2e_test,week02)
+	- $(call e2e_test,week03-find)
+ 	- $(call e2e_test,week03-substr)
+ 	- $(call e2e_test,week03-cat)
 
-check: unit-tests
-all-tests: all-unit-tests
+check: end2end-tests unit-tests
+ all-tests: all-end2end-tests all-unit-tests
 
 ## --------------------------------------------------
 # target to do all checks before releasing a new version by staff
