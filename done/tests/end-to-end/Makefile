@@ -23,7 +23,7 @@ PROMPT = '==== end-to-end test'
 test: week02 week03-find week03-substr week03-cat
 
 week%: week%.py fakes
- 	@python $< && echo $(PROMPT) $@ "SUCCEEDED =====" || { echo $(PROMPT) $@ " FAILED ====="; false; }
+	@python $< && echo $(PROMPT) $@ "SUCCEEDED =====" || { echo $(PROMPT) $@ " FAILED ====="; false; }
 	@printf '\n'
 
 fakes: $(FAKE_TARGETS)

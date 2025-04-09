@@ -34,7 +34,7 @@ int cli_client_get(client_t *client, int argc, char **argv){
 
     int ret = network_get(client, key, value);
     if (ret == ERR_NONE) printf("OK %s \n", *value);
-    else printf("FAIL");
+    else printf("FAIL\n");
     free((void*)key_copy);
     free((void*)*value);
     free((void*)value);
