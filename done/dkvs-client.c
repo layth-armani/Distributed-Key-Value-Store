@@ -36,15 +36,13 @@ struct command_mapping {
 int help(client_t *client _unused, int argc _unused, char **argv _unused);
 int put(client_t *client, int argc, char **argv);
 int get(client_t *client, int argc, char **argv);
+int find(client_t *client, int argc, char **argv);
 
 static struct command_mapping commands[] = {
-/* TODO WEEK 06:
- * Ajouter ici les commandes get et put avec leur paramètres nécessaires.
- * (et supprimer ces trois lignes de commentaire).
- */
-    { "help"  , help             , 0                                      , -1, INT_MAX },
-    { "get"   , get             , TOTAL_SERVERS | GET_NEEDED                                      , -1, INT_MAX },
-    { "put"   , put             , TOTAL_SERVERS | PUT_NEEDED                                      , -1, INT_MAX }
+    { "help"  , help            , 0                                       , -1, INT_MAX },
+    { "get"   , get             , TOTAL_SERVERS | GET_NEEDED              , -1, INT_MAX },
+    { "put"   , put             , TOTAL_SERVERS | PUT_NEEDED              , -1, INT_MAX },
+    { "find"  , find            , 0                                       , -1, INT_MAX }
 
 };
 

@@ -163,7 +163,7 @@ all-end2end-tests: $(TARGETS)
 	- $(call e2e_test,week03-cat)
 
 check: end2end-tests unit-tests
- all-tests: all-end2end-tests all-unit-tests
+all-tests: all-end2end-tests all-unit-tests
 
 ## --------------------------------------------------
 # target to do all checks before releasing a new version by staff
