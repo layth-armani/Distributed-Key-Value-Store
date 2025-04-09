@@ -7,6 +7,8 @@ SRC_DIR  ?= ../../done
 CFLAGS  += '-I$(SRC_DIR)' -DCS202_TEST -DDATA_DIR='"$(DATA_DIR)"'
 LDFLAGS += '-L$(SRC_DIR)'
 
+CFLAGS += -g
+
 CFLAGS  += -fsanitize=address
 LDFLAGS += -fsanitize=address
 
