@@ -61,6 +61,12 @@ int cli_client_cat(client_t *client, int argc, char **argv){
         index++;
     }
     collector[strlen(collector)+1] = '\0';
+
+    if(strlen(argv[index]) > MAX_MSG_ELEM_SIZE){
+        free(collector);
+        free(fetcher);
+        return ERR_INVALID_ARGUMENT;
+    }
     
     ret = network_put(client, argv[index], collector);
 
