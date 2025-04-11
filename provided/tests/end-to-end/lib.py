@@ -33,38 +33,38 @@ class DKVSTests(unittest.TestCase):
             ["127.0.0.1", "1234"], ["127.0.0.1" "1235"], ["127.0.0.1", "1236"]
         )
 
-    def nice_format(self, command):
-        return ' '.join(['"' + word  + '"' if (not word or ' ' in word) else word for word in command])
-
     def tearDown(self):
-        result = self._outcome.result
-        ok = all(test != self for test, text in result.errors + result.failures)
-        if not ok:
-            failure = self._outcome.result.failures[-1]
-            self._outcome.result.failures[-1] = (
-                self,
-                failure[1]
-                + "\n === TO REPRODUCE, RUN ===\n"
-                + "\n".join([f"{self.nice_format(cmd)}" for cmd in self.commands])
-                +"\n",
-            )
-
         for serv in self.running_servers:
             serv.send_signal(2)
             serv.wait()
 
-    def assertErr(
-        self,
-        actual,
-        name,
-        context=None
-    ):
+    def nice_format(self, command):
+        return ' '.join(['"' + word  + '"' if (not word or ' ' in word) else word for word in command])
+
+    def run(self, result=None):
+        failure_count = len(result.failures) if result else 0
+
+        res = unittest.TestCase.run(self, result)  # call superclass run method
+
+        if failure_count != len(res.failures):
+            res.failures[-1] = (
+                res.failures[-1][0],
+                res.failures[-1][1]
+                + "\n +--------------- TO REPRODUCE, RUN ---------------\n |  "
+                + "\n |  "
+                + "\n |  ".join([f"{self.nice_format(cmd)}" for cmd in self.commands])
+                + "\n |  "
+                + "\n +-------------------------------------------------\n",
+            )
+
+        return res
+
+    def assertErr(self, actual, name, context=None):
         expected = error_code(name)
         message = f"expected {name}, got {error_name(actual)}"
-        if context: message = message + context
-        self.assertEqual(
-            actual, expected, msg=message
-        )
+        if context:
+            message = message + context
+        self.assertEqual(actual, expected, msg=message)
 
     def assertErrNotEquals(
         self,
@@ -75,7 +75,7 @@ class DKVSTests(unittest.TestCase):
         self.assertNotEqual(
             actual, expected, msg=f"expected error different than {name}"
         )
-        
+
     def assertGetEquals(self, key, value, fake=None):
         (ret, out, err) = self.client("get", key, fake=fake)
 
@@ -139,4 +139,3 @@ class DKVSTests(unittest.TestCase):
             return newmap, oldmap
         else:
             return newmap
-
