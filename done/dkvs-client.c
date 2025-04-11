@@ -42,8 +42,6 @@ static struct command_mapping commands[] = {
     { "help"  , help            , 0                                       , -1, INT_MAX },
     { "get"   , get             , TOTAL_SERVERS | GET_NEEDED              , -1, INT_MAX },
     { "put"   , put             , TOTAL_SERVERS | PUT_NEEDED              , -1, INT_MAX },
-    { "find"  , find            , 0                                       , -1, INT_MAX }
-
 };
 
 // ======================================================================
