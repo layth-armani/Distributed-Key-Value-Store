@@ -37,12 +37,15 @@ int help(client_t *client _unused, int argc _unused, char **argv _unused);
 int put(client_t *client, int argc, char **argv);
 int get(client_t *client, int argc, char **argv);
 int find(client_t *client, int argc, char **argv);
+int substr(client_t *client, int argc, char **argv);
+
 
 static struct command_mapping commands[] = {
     { "help"  , help            , 0                                       , -1, INT_MAX },
     { "get"   , get             , TOTAL_SERVERS | GET_NEEDED              , -1, INT_MAX },
     { "put"   , put             , TOTAL_SERVERS | PUT_NEEDED              , -1, INT_MAX },
-    { "find"  , find            , 0                                       , -1, INT_MAX }
+    { "find"  , find            , 0                                       , -1, INT_MAX },
+    { "substr", substr          , 4                                       , -1, INT_MAX }
 
 };
 
@@ -70,6 +73,16 @@ int put(client_t *client, int argc, char **argv){
 }
 int get(client_t *client, int argc, char **argv){
     int ret = cli_client_get(client, argc,argv);
+    return ret;
+}
+int find(client_t *client, int argc, char **argv){
+    int ret = cli_client_find(client, argc,argv);
+    return ret;
+}
+int substr(client_t *client, int argc, char **argv){
+    int ret = cli_client_substr(client, argc,argv);
+    if(ret != ERR_NONE)printf("FAIL\n");
+    else printf("OK\n");
     return ret;
 }
 
