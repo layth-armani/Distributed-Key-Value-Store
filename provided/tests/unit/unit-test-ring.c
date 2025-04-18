@@ -5,6 +5,14 @@
 #include <string.h>
 #include <unistd.h>
 
+static char INITIAL_PATH[4096];
+void nope() {}
+void restore_path()
+{
+    int ret = chdir(INITIAL_PATH);
+    ck_assert_int_eq(ret, 0); // cannot come back :_-(
+}
+
 const char node5_sha[SHA_DIGEST_LENGTH] = {0x11, 0xc3, 0xf8, 0x15, 0x14, 0x63, 0x7c, 0x68, 0xae, 0xf6, 0x49, 0xa1, 0xb9, 0x35, 0x77, 0xba, 0x86, 0x62, 0xc6, 0x99};
 const char node3_sha[SHA_DIGEST_LENGTH] = {0x5b, 0x0d, 0x0f, 0x03, 0x6d, 0x57, 0x7a, 0x48, 0x6c, 0x10, 0x1c, 0x15, 0x02, 0x38, 0x16, 0x5f, 0x58, 0x5f, 0xca, 0xfd};
 const char node0_sha[SHA_DIGEST_LENGTH] = {0xaa, 0x66, 0xf3, 0xe5, 0xa8, 0xd9, 0xcd, 0xc5, 0xc0, 0xbd, 0x49, 0x70, 0x8b, 0xc5, 0x98, 0x47, 0xe6, 0x91, 0x56, 0x34};
@@ -90,10 +98,12 @@ Suite *ring_suite()
     Suite *s;
     TCase *tc_core;
 
+    getcwd(INITIAL_PATH, 4096);
+
     s = suite_create("Ring layer");
-    Add_Test(s, test_ring_get_all);
-    Add_Test(s, test_ring_get_stops_at_wanted);
-    Add_Test(s, test_ring_get_skips_matched_server);
+    Add_Test_With_Fixture(s, test_ring_get_all, nope, restore_path);
+    Add_Test_With_Fixture(s, test_ring_get_stops_at_wanted, nope, restore_path);
+    Add_Test_With_Fixture(s, test_ring_get_skips_matched_server, nope, restore_path);
 
     return s;
 }
