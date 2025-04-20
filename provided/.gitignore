@@ -9,6 +9,7 @@ fake-dkvs-client*
 dkvs-dump
 dkvs-ping
 dkvs-server
+test-atouintN
 
 *.xml
 *.html

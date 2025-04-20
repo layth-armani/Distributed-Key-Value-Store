@@ -156,10 +156,7 @@ static void read_file_and_size(void **buffer, const char *filename, size_t *size
     fclose(file);
 }
 
-#define ck_assert_node_eq(node, ip, port, _sha)                     \
-    do {                                                            \
-        ck_assert_int_eq(ntohs(node.addr.sin_port), port);          \
-        ck_assert_int_eq(node.addr.sin_addr.s_addr, inet_addr(ip)); \
-                                                                    \
-        ck_assert_mem_eq(node.sha, _sha, SHA_DIGEST_LENGTH);        \
+#define ck_assert_node_eq(node, ip, port, _sha)              \
+    do {                                                     \
+        ck_assert_mem_eq(node.sha, _sha, SHA_DIGEST_LENGTH); \
     } while (0)

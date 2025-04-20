@@ -8,6 +8,7 @@ TARGETS += args
 TARGETS += client
 TARGETS += node-list
 TARGETS += node
+TARGETS += ring
 
 CFLAGS += -g
 
@@ -48,6 +49,8 @@ OBJS = $(addprefix $(SRC_DIR)/,$(SRC_OBJS))
 ifneq (,$(wildcard $(SRC_DIR)/fake_network.c))
 OBJS += $(SRC_DIR)/fake_network.o
 endif
+
+## OBJS += 
 
 # ======================================================================
 unit-test-%.o: unit-test-%.c $(SRC_DIR)/*.h

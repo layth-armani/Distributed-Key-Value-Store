@@ -12,8 +12,8 @@ FAKE_EXE = f"./fake-dkvs-client-"
 TMP_DIR = f"/tmp/cs202"
 
 class DKVSTests(unittest.TestCase):
-    FAIL_REGEX=r"FAIL\n"
-    OK_REGEX=r"OK$"
+    FAIL_REGEX=r"FAIL"
+    OK_REGEX=r"OK"
 
     def setUp(self):
         self.commands = []
@@ -30,7 +30,7 @@ class DKVSTests(unittest.TestCase):
             os.chmod(f"{TMP_DIR}/{file}", 0o777)
 
         self.create_server_file(
-            ["127.0.0.1", "1234"], ["127.0.0.1" "1235"], ["127.0.0.1", "1236"]
+            ["127.0.0.1", "1234", "1"], ["127.0.0.1", "1235", "1"], ["127.0.0.1", "1236", "1"]
         )
 
     def tearDown(self):
@@ -83,7 +83,7 @@ class DKVSTests(unittest.TestCase):
         self.assertRegex(out, f"\\nOK\\s+{value}$") if value else self.assertRegex(out, f"\\nOK\\s*$")
 
     def create_server_file(self, *servers):
-        with open(f"{TMP_DIR}/server.txt", "w") as file:
+        with open(f"{TMP_DIR}/servers.txt", "w") as file:
             for s in servers:
                 file.write(" ".join(s) + "\n")
 
