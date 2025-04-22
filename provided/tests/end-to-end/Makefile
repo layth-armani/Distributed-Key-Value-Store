@@ -37,4 +37,4 @@ fake-dkvs-client-%: fake_network_%.o  $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 clean:
-	rm -f fake-dkvs-client-* fake_network_*.c
+	$(RM) -r fake-dkvs-client-* fake_network_*.c /tmp/cs202
