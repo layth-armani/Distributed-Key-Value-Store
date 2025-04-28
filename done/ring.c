@@ -27,38 +27,26 @@ int contains_node(node_t* list,size_t size ,node_t node){
     {
         return 0;
     }
-    
 
     for (size_t i = 0; i < size ; i++)
     {
         if (!strncmp(list[i].addr,node.addr,strlen(list[i].addr)) 
-            && (list->port == node.port))
+            && (list[i].port == node.port))
         {
+            printf("Is the same server\n");
             return 1;
+            
         }
     }
     return 0;
-    
 }
 
 
 int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_key_t key){
 
     size_t ring_size = ring->size;
-    node_t* visited_servers;
-    size_t nb_visited = 0;
 
-    if (wanted_list_size > ring->size)
-    {
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    visited_servers = calloc(wanted_list_size, sizeof(node_t));
-
-    if (visited_servers == NULL)
-    {
-        return ERR_OUT_OF_MEMORY;
-    }
+    node_list_print(ring);
     
     size_t index = 0;
     unsigned char key_sha[SHA_DIGEST_LENGTH];
@@ -70,17 +58,15 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
         node_t node = ring->nodes[index];
         
         if (memcmp(node.sha, key_sha,SHA_DIGEST_LENGTH) >= 0){
-            if (!contains_node(visited_servers, nb_visited, node))
+            if (!contains_node(list->nodes, list->size, node))
             {
                 int ret = node_list_add(list, node);
 
                 if (ret!= ERR_NONE)
                 {
-                    free(visited_servers);
                     return ret;
                 }
-                visited_servers[nb_visited] = node;
-                nb_visited++;
+            
                 wanted_list_size--;
             }
         }
@@ -88,15 +74,6 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
         ring_size--;
         index++;
     }
-
-
-    free(visited_servers);
-
-    if (wanted_list_size != 0)
-    {
-        return ERR_NOT_FOUND;
-    }
-    
     return ERR_NONE;
 }
 

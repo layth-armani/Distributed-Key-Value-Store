@@ -27,32 +27,25 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
     char* string_to_hash = calloc(STRING_LENGTH_SHA, sizeof(char));
     if (string_to_hash == NULL)
     {
+        free(address);
         return ERR_OUT_OF_MEMORY;
     }
 
-    unsigned char* sha_string = calloc(SHA_DIGEST_LENGTH, sizeof(char));
-    if (sha_string == NULL)
-    {
-        free(string_to_hash);
-        return ERR_OUT_OF_MEMORY;
-    }
 
     //Create string to be hashed
     snprintf(string_to_hash, STRING_LENGTH_SHA, "%s %hu %zu", ip, port, node_id);
 
-    SHA1( (unsigned char*) string_to_hash, strlen(string_to_hash), sha_string);
+    SHA1( (unsigned char*) string_to_hash, strlen(string_to_hash), string_to_hash);
 
-    node->sha = sha_string;
-
-    free(string_to_hash);
+    node->sha = string_to_hash;
 
     return ERR_NONE;
 }
 
 void node_end(node_t *node){
     if(node != NULL) {
-        free(node->sha);
         free(node->addr);
+        free(node->sha);
     }
     return;
 }
