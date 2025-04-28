@@ -63,7 +63,7 @@ class Week02(DKVSTests):
         )
 
         self.assertErr(ret, "ERR_NONE")
-        self.assertRegex(out, "OK$")
+        self.assertRegex(out, self.OK_REGEX)
 
     def test_put_empty_key(self):
         (ret, out, err) = self.client("put", "", "empty", fake="1")

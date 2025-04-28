@@ -39,7 +39,6 @@ START_TEST(test_empty_yields_defaults)
 }
 END_TEST
 
-
 START_TEST(test_all_args)
 {
     struct args a = {0};

@@ -1,7 +1,7 @@
 import re
 import os
 
-SRC_DIR = os.getenv('SRC_DIR', "../../../done")
+SRC_DIR = os.getenv('SRC_DIR', "../../done")
 
 errors = {}
 
