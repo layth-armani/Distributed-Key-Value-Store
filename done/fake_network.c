@@ -1,6 +1,7 @@
 #include "error.h"
 #include "hashtable.h"
 #include "network.h"
+#include "util.h"
 
 #define DEFAULT_HASH_TABLE_SIZE 100
 
@@ -29,7 +30,7 @@ static Htable_t *local = NULL;
 // ======================================================================
 // ======================================================================
 
-static int init_if_needed(const client_t *client)
+static int init_if_needed(const client_t* _unused client)
 {
     if (local == NULL) {
         puts("==== fake network init ========================");

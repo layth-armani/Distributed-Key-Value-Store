@@ -47,7 +47,14 @@ void node_list_sort(node_list_t *list,
                     int (*comparator)(const node_t *, const node_t *));
 
 /**
- * @brief free the given list of nodes
+ * @brief free the given list of nodes (also free its nodes)
  * @param list list of nodes to clean
  */
 void node_list_free(node_list_t *list);
+
+
+/**
+  * @brief prints a list of nodes to STDOUT; used for debug
+  * @param list list of nodes to print
+*/
+ void node_list_print(const node_list_t *list);

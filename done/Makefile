@@ -40,7 +40,7 @@ LDFLAGS  += -fsanitize=address
 
 #ifdef CS212_STAFF
 #TODO: restore: CPPFLAGS += -DCS212_STAFF -DWEEK=15
-CFLAGS += -DCS212_STAFF -DWEEK=8
+CFLAGS += -DCS212_STAFF -DWEEK=9
 #endif
 
 ifdef DEBUG
@@ -52,7 +52,7 @@ endif
 .PHONY: all all-deferred
 
 # list of C files the .o of which shall not be automatically added to OBJS list
-EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c
+EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c test-atouintN.c
 
 SRCS = $(filter-out $(EXCLUDE_SRCS), $(wildcard *.c))
 
