@@ -6,6 +6,9 @@
 #include "error.h"
 #include "node.h"
 
+#define STRING_LENGTH_SHA 40
+#define MAX_IP_LENGTH 16
+
 int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
     if (node == NULL || ip == NULL || strlen(ip) == 0){
         fprintf(stderr, "Invalid Arguments for initialization of a node: Returning ERR_INVALID_ARGUMENT\n");
@@ -18,11 +21,44 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
     }
     strncpy(address,ip,strlen(ip)+1);
     node->addr = address;
+    node->port = port;
+
+    
+    char* string_to_hash = calloc(STRING_LENGTH_SHA, sizeof(char));
+    if (string_to_hash == NULL)
+    {
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    unsigned char* sha_string = calloc(SHA_DIGEST_LENGTH, sizeof(char));
+    if (sha_string == NULL)
+    {
+        free(string_to_hash);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    //Create string to be hashed
+    snprintf(string_to_hash, STRING_LENGTH_SHA, "%s %hu %zu", ip, port, node_id);
+
+    SHA1( (unsigned char*) string_to_hash, strlen(string_to_hash), sha_string);
+
+    node->sha = sha_string;
+
+    free(string_to_hash);
+
     return ERR_NONE;
 }
 
 void node_end(node_t *node){
-    if(node != NULL) free((void*)node->addr);
+    if(node != NULL) {
+        free(node->sha);
+        free((void*)node->addr);
+    }
     return;
 }
+
+int node_cmp_sha(const node_t *first, const node_t *second){
+    return memcmp(first->sha,second->sha,SHA_DIGEST_LENGTH);
+}
+
 

@@ -1,9 +1,69 @@
 #include <stdlib.h>
+#include <errno.h>
 #include "node.h"
 #include "node_list.h"
 #include "config.h"
 
 #define NODE_LIST_PADDING 128
+
+
+int node_list_server_init(node_list_t* nodes){
+    FILE* file = fopen(DKVS_SERVERS_LIST_FILENAME, "r");
+    if(file == NULL)return ERR_IO;
+
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char *buffer = (char *)malloc(file_size + 1);
+    if (buffer == NULL) {
+        fclose(file);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    fread(buffer, 1, file_size, file);
+    buffer[file_size] = '\0';
+    fclose(file);
+
+    char* line  = strtok(buffer, "\n");
+    while (line != NULL) {
+        char *ip = strtok(line, " ");
+        char *port_str = strtok(NULL, " ");
+        char *id_str = strtok(NULL, " ");
+
+        if(ip == NULL || port_str == NULL ||id_str == NULL || strlen(ip) > 16 || port_str[0] == '-' || id_str == '-'){
+            free(buffer);
+            return ERR_INVALID_CONFIG;
+        }
+        
+        uint16_t port = atouint16(port_str);
+        if(errno != 0){
+            free(buffer);
+            return ERR_INVALID_CONFIG;
+        }
+        size_t id = (size_t)atouint64(id_str);
+        if(errno != 0){
+            free(buffer);
+            return ERR_INVALID_CONFIG;
+        }
+
+        for (int i = 1; i <= id; i++){
+            node_t node;
+            int test = node_init(&node, ip, port, id);
+
+            if (test != ERR_NONE) return test;
+            node_list_add(nodes,node);
+        }
+        
+        line = strtok(NULL, "\n");
+    }
+
+    free(buffer);
+
+
+}
+
+
 
 node_list_t* node_list_construct(node_list_t* list) {
 
@@ -34,14 +94,10 @@ int get_nodes(node_list_t *nodes){
         if(nodes == NULL){
             return ERR_OUT_OF_MEMORY;
         }
-
-        node_t node;
-        int test = node_init(&node, DKVS_DEFAULT_IP, DKVS_DEFAULT_PORT, 0);
-
-        if (test != ERR_NONE) return test;
-        node_list_add(nodes,node);
-
     }
+
+    node_list_server_init(nodes);
+
     return ERR_NONE; 
 }
 
@@ -75,12 +131,22 @@ int node_list_add(node_list_t *list, node_t node){
             return ERR_OUT_OF_MEMORY;
         }
     }
-    list->nodes[list->size] = node;
+    node_t* copy = malloc(sizeof(copy));
+    int ret = node_init(copy, node.addr, node.port, node.sha);
+    if(ret != ERR_NONE){
+        free(copy);
+        return ret;
+    }
+
+    list->nodes[list->size] = *copy;
     ++(list->size);
+    free(copy);
     return ERR_NONE;
 }
 
-
+void node_list_sort(node_list_t *list, int (*comparator)(const node_t *, const node_t *)){
+    qsort(list, list->size, sizeof(node_list_t),comparator);
+}
 
 
 void node_list_free(node_list_t *list){
@@ -99,4 +165,20 @@ void node_list_free(node_list_t *list){
     }
 }
 
+void node_list_print(const node_list_t *list)
+{
+    if (list == NULL)
+        return;
 
+    for (size_t i = 0; i < list->size; ++i)
+    {
+        const node_t *const node = list->nodes + i;
+
+        for (size_t j = 0; j < SHA_DIGEST_LENGTH; ++j)
+        {
+            printf("%02x", node->sha[j]);
+        }
+
+        printf(" (%s %d)\n", node->addr, node->port);
+    }
+}

@@ -16,6 +16,8 @@
 
 struct node {
     const char *addr;
+    uint16_t port;
+    unsigned char* sha;
 };
 /**
  * @brief node data structure
