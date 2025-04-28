@@ -52,7 +52,7 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
 void node_end(node_t *node){
     if(node != NULL) {
         free(node->sha);
-        free((void*)node->addr);
+        free(node->addr);
     }
     return;
 }

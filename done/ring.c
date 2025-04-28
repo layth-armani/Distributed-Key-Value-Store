@@ -53,14 +53,17 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
         return ERR_INVALID_ARGUMENT;
     }
 
-    if (visited_servers = calloc(wanted_list_size, sizeof(node_t)));
+    visited_servers = calloc(wanted_list_size, sizeof(node_t));
+
+    if (visited_servers == NULL)
     {
         return ERR_OUT_OF_MEMORY;
     }
     
     size_t index = 0;
-    unsigned char* key_sha[SHA_DIGEST_LENGTH];
-    SHA1(key, strlen(key), key_sha);
+    unsigned char key_sha[SHA_DIGEST_LENGTH];
+    
+    SHA1((unsigned char*)key, strlen(key), key_sha);
     
     while (wanted_list_size != 0 && ring_size != 0)
     {
@@ -76,8 +79,6 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
                     free(visited_servers);
                     return ret;
                 }
-                
-                
                 visited_servers[nb_visited] = node;
                 nb_visited++;
                 wanted_list_size--;
