@@ -56,7 +56,6 @@ int check_valid_flag(char* str, const char* option, int valid){
  */
 int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_argv) {
     if (!args || !argc || !rem_argv) {
-        fprintf(stderr, "ERROR: ONE OF THE ARGUMENTS IS NULL\n");
         return ERR_INVALID_ARGUMENT;
     }
 
@@ -74,7 +73,6 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             ++char_list;
 
             if (*argc == 0 || !check_valid_option(char_list[0])) {
-                fprintf(stderr, "NO ARGUMENTS FOR OPTION OR INVALID COMMAND -n\n");
                 return ERR_INVALID_COMMAND;
             }
             if ((N = atouint32(char_list[0])) <= 0) {
