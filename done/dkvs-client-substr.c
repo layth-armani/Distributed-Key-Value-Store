@@ -42,7 +42,7 @@ int cli_client_substr(client_t *client, int argc, char **argv){
     uint64_t length = atouint64(argv[2]);
     dkvs_const_key_t destination_key = argv[3];
 
-    if (errno == ERANGE || length < 0 || length > MAX_MSG_ELEM_SIZE){
+    if (errno == ERANGE || length > MAX_MSG_ELEM_SIZE){
         return ERR_INVALID_COMMAND;
     }
 
@@ -74,7 +74,7 @@ int cli_client_substr(client_t *client, int argc, char **argv){
         return ERR_OUT_OF_MEMORY;
     }
     
-    int counter = 0;
+    size_t counter = 0;
     while (counter < length) {
         destination_val[counter] = (*origin_val)[pos];
         counter++;

@@ -30,7 +30,7 @@ int cli_client_put(client_t *client, int argc, char **argv){
     dkvs_const_value_t value = NULL;
     char* value_copy = calloc(strlen(argv[0])+1, sizeof(char));
     if(value_copy==NULL){
-        free((void*)key);
+        free(key);
         return ERR_OUT_OF_MEMORY;
     }
     strncpy(value_copy,argv[0], strlen(argv[0])+1);
@@ -39,7 +39,7 @@ int cli_client_put(client_t *client, int argc, char **argv){
     int ret = network_put(client, key, value);
     if (ret == ERR_NONE)printf("OK\n");
     else printf("FAIL\n");
-    free((void*)key);
-    free((void*)value);
+    free(key);
+    free(value);
     return ret;
 }

@@ -12,7 +12,12 @@ int node_list_server_init(node_list_t* nodes){
     if(file == NULL)return ERR_IO;
 
     fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
+    long f_s = ftell(file);
+    if(f_s == -1){
+        fclose(file);
+        return ERR_IO;
+    }
+    size_t file_size = (size_t) f_s;
     fseek(file, 0, SEEK_SET);
 
     char *buffer = (char *)malloc(file_size + 1);
@@ -31,7 +36,7 @@ int node_list_server_init(node_list_t* nodes){
         char *port_str = strtok(NULL, " ");
         char *id_str = strtok(NULL, " ");
 
-        if(ip == NULL || port_str == NULL ||id_str == NULL || strlen(ip) > 16 || port_str[0] == '-' || id_str == '-'){
+        if(ip == NULL || port_str == NULL ||id_str == NULL || strlen(ip) > 16 || port_str[0] == '-' || id_str[0] == '-'){
             free(buffer);
             return ERR_INVALID_CONFIG;
         }
@@ -47,11 +52,14 @@ int node_list_server_init(node_list_t* nodes){
             return ERR_INVALID_CONFIG;
         }
 
-        for (int i = 1; i <= id; i++){
+        for (size_t i = 1; i <= id; i++){
             node_t node;
-            int test = node_init(&node, ip, port, id);
+            int ret = node_init(&node, ip, port, id);
 
-            if (test != ERR_NONE) return test;
+            if (ret != ERR_NONE){
+                free(buffer);
+                return ret;
+            }
             node_list_add(nodes,node);
         }
         
@@ -60,7 +68,7 @@ int node_list_server_init(node_list_t* nodes){
 
     free(buffer);
 
-
+    return ERR_NONE;
 }
 
 
@@ -131,21 +139,14 @@ int node_list_add(node_list_t *list, node_t node){
             return ERR_OUT_OF_MEMORY;
         }
     }
-    node_t* copy = malloc(sizeof(copy));
-    int ret = node_init(copy, node.addr, node.port, node.sha);
-    if(ret != ERR_NONE){
-        free(copy);
-        return ret;
-    }
-
-    list->nodes[list->size] = *copy;
+    
+    list->nodes[list->size] = node;
     ++(list->size);
-    free(copy);
     return ERR_NONE;
 }
 
 void node_list_sort(node_list_t *list, int (*comparator)(const node_t *, const node_t *)){
-    qsort(list, list->size, sizeof(node_list_t),comparator);
+    qsort(list->nodes, list->size, sizeof(node_t), (int (*)(const void *, const void *))comparator);
 }
 
 
