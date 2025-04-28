@@ -42,8 +42,8 @@ int node_list_server_init(node_list_t* nodes){
         char* ip = strtok_r(line, " \t", &saveptr_token);
         char* port_str = strtok_r(NULL, " \t", &saveptr_token);
         char* id_str = strtok_r(NULL, " \t", &saveptr_token);
-
-        if(ip == NULL || port_str == NULL ||id_str == NULL || strlen(ip) > 16 || port_str[0] == '-' || id_str[0] == '-'){
+    
+        if(ip == NULL || port_str == NULL || id_str == NULL || strlen(ip) > 16 || !strncmp(port_str, "-", 1) || !strncmp(id_str, "-", 1)){
             free(buffer);
             return ERR_INVALID_CONFIG;
         }
@@ -118,9 +118,12 @@ int get_nodes(node_list_t *nodes){
         }
     }
 
-    node_list_server_init(nodes);
+    int ret = node_list_server_init(nodes);
+    if(ret !=NULL){
+        node_list_free(nodes);
+    }
 
-    return ERR_NONE; 
+    return ret; 
 }
 
 
@@ -143,13 +146,11 @@ node_list_t* node_list_enlarge(node_list_t* list) {
 
 int node_list_add(node_list_t *list, node_t node){
     if (list == NULL) {
-        fprintf(stderr, "Invalid Arguments for adding to a node list: Returning ERR_INVALID_ARGUMENT\n");
         return ERR_INVALID_ARGUMENT;
     }
 
     while (list->size >= list->allocated) {
         if (node_list_enlarge(list) == NULL) {
-            fprintf(stderr, "Couldn't allocate additional memory to add a node to a node list: Returning ERR_OUT_OF_MEMORY\n");
             return ERR_OUT_OF_MEMORY;
         }
     }
@@ -176,6 +177,8 @@ void node_list_free(node_list_t *list){
         }
         free(list->nodes);
         list->nodes = NULL;
+        list->size = 0;
+        list->allocated = 0;
     }
 }
 
