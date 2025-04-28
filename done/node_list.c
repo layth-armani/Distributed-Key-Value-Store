@@ -30,22 +30,31 @@ int node_list_server_init(node_list_t* nodes){
     buffer[file_size] = '\0';
     fclose(file);
 
-    char* line  = strtok(buffer, "\n");
+    char* saveptr_line;
+    char* line = strtok_r(buffer, "\r\n", &saveptr_line);
     while (line != NULL) {
-        char *ip = strtok(line, " ");
-        char *port_str = strtok(NULL, " ");
-        char *id_str = strtok(NULL, " ");
+        if (*line == '\0' || *line == ' ' || *line == '\t') {
+            line = strtok_r(NULL, "\r\n", &saveptr_line);
+            continue;
+        }
+
+        char* saveptr_token;
+        char* ip = strtok_r(line, " \t", &saveptr_token);
+        char* port_str = strtok_r(NULL, " \t", &saveptr_token);
+        char* id_str = strtok_r(NULL, " \t", &saveptr_token);
 
         if(ip == NULL || port_str == NULL ||id_str == NULL || strlen(ip) > 16 || port_str[0] == '-' || id_str[0] == '-'){
             free(buffer);
             return ERR_INVALID_CONFIG;
         }
         
+        errno = 0;
         uint16_t port = atouint16(port_str);
         if(errno != 0){
             free(buffer);
             return ERR_INVALID_CONFIG;
         }
+        errno = 0;
         size_t id = (size_t)atouint64(id_str);
         if(errno != 0){
             free(buffer);
@@ -54,16 +63,21 @@ int node_list_server_init(node_list_t* nodes){
 
         for (size_t i = 1; i <= id; i++){
             node_t node;
-            int ret = node_init(&node, ip, port, id);
+            int ret = node_init(&node, ip, port, i);
 
             if (ret != ERR_NONE){
                 free(buffer);
                 return ret;
             }
-            node_list_add(nodes,node);
+            ret = node_list_add(nodes, node);
+
+            if (ret != ERR_NONE){
+                free(buffer);
+                return ret;
+            }
         }
         
-        line = strtok(NULL, "\n");
+        line = strtok_r(NULL, "\r\n", &saveptr_line);
     }
 
     free(buffer);
@@ -139,7 +153,6 @@ int node_list_add(node_list_t *list, node_t node){
             return ERR_OUT_OF_MEMORY;
         }
     }
-    
     list->nodes[list->size] = node;
     ++(list->size);
     return ERR_NONE;
