@@ -119,7 +119,7 @@ int get_nodes(node_list_t *nodes){
     }
 
     int ret = node_list_server_init(nodes);
-    if(ret !=NULL){
+    if(ret != ERR_NONE){
         node_list_free(nodes);
     }
 

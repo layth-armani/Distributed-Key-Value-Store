@@ -38,11 +38,16 @@ int cli_client_substr(client_t *client, int argc, char **argv){
     }
 
     dkvs_const_key_t origin_key = argv[0];
+    errno = 0;
     int64_t pos = extract_negative_number(argv[1]);
+    if (errno != 0) return ERR_INVALID_ARGUMENT;
+    errno = 0;
     uint64_t length = atouint64(argv[2]);
+    if (errno != 0) return ERR_INVALID_ARGUMENT;
     dkvs_const_key_t destination_key = argv[3];
 
-    if (errno == ERANGE || length > MAX_MSG_ELEM_SIZE){
+
+    if (length > MAX_MSG_ELEM_SIZE){
         return ERR_INVALID_COMMAND;
     }
 

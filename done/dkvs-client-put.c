@@ -16,7 +16,7 @@ int cli_client_put(client_t *client, int argc, char **argv){
         return ERR_INVALID_ARGUMENT;
     }
     
-    dkvs_const_key_t key = NULL;
+    dkvs_key_t key = NULL;
     char* key_copy = calloc(strlen(argv[0])+1, sizeof(char));
     if(key_copy==NULL){
         return ERR_OUT_OF_MEMORY;
@@ -27,7 +27,7 @@ int cli_client_put(client_t *client, int argc, char **argv){
     argv++;
     argc--;
 
-    dkvs_const_value_t value = NULL;
+    dkvs_value_t value = NULL;
     char* value_copy = calloc(strlen(argv[0])+1, sizeof(char));
     if(value_copy==NULL){
         free(key);
