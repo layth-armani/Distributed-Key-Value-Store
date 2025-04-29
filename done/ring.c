@@ -60,21 +60,8 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
             if (!contains_node(list->nodes, list->size, node))
             {
 
-                node_t node_copy;
-
-
-                node_copy.addr = strndup(node.addr, strlen(node.addr) + 1);
-                node_copy.port = node.port;
-
-                node_copy.sha = malloc(SHA_DIGEST_LENGTH);
-                if (node_copy.sha == NULL) {
-                    free((void*)node_copy.addr);
-                    return ERR_OUT_OF_MEMORY;
-                }
-                memcpy(node_copy.sha, node.sha, SHA_DIGEST_LENGTH);
-
-
-                int ret = node_list_add(list, node_copy);
+                
+                int ret = node_list_add(list, node);
 
                 if (ret!= ERR_NONE)
                 {

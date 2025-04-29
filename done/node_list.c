@@ -75,6 +75,8 @@ int node_list_server_init(node_list_t* nodes){
                 free(buffer);
                 return ret;
             }
+            
+            node_end(&node);
         }
         
         line = strtok_r(NULL, "\r\n", &saveptr_line);
@@ -154,7 +156,21 @@ int node_list_add(node_list_t *list, node_t node){
             return ERR_OUT_OF_MEMORY;
         }
     }
-    list->nodes[list->size] = node;
+
+    node_t node_copy;
+
+    node_copy.addr = strndup(node.addr, strlen(node.addr) + 1);
+    node_copy.port = node.port;
+
+    node_copy.sha = malloc(SHA_DIGEST_LENGTH);
+    if (node_copy.sha == NULL) {
+        free((void*)node_copy.addr);
+        return ERR_OUT_OF_MEMORY;
+    }
+    memcpy(node_copy.sha, node.sha, SHA_DIGEST_LENGTH);
+
+    list->nodes[list->size] = node_copy;
+
     ++(list->size);
     return ERR_NONE;
 }
