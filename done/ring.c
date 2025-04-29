@@ -59,7 +59,22 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
         if (memcmp(node.sha, key_sha,SHA_DIGEST_LENGTH) >= 0){
             if (!contains_node(list->nodes, list->size, node))
             {
-                int ret = node_list_add(list, node);
+
+                node_t node_copy;
+
+
+                node_copy.addr = strndup(node.addr, strlen(node.addr) + 1);
+                node_copy.port = node.port;
+
+                node_copy.sha = malloc(SHA_DIGEST_LENGTH);
+                if (node_copy.sha == NULL) {
+                    free((void*)node_copy.addr);
+                    return ERR_OUT_OF_MEMORY;
+                }
+                memcpy(node_copy.sha, node.sha, SHA_DIGEST_LENGTH);
+
+
+                int ret = node_list_add(list, node_copy);
 
                 if (ret!= ERR_NONE)
                 {
@@ -81,27 +96,3 @@ void ring_free(ring_t *ring){
 }
 
 
-int copy_node(const node_t node, node_t* copy){
-
-    copy->addr = calloc(strlen(node.addr)+1 , sizeof(char));
-    if (copy->addr == NULL)
-    {
-        return ERR_OUT_OF_MEMORY;
-    }
-
-    copy->sha = calloc(SHA_DIGEST_LENGTH, sizeof(char));
-
-    if (copy->addr == NULL)
-    {
-        free(copy->addr);
-        return ERR_OUT_OF_MEMORY;
-    }
-    
-    copy->port = node.port;
-    strncpy(copy->addr, node.addr, strlen(node.addr)+1);
-    memcpy(copy->sha,node.sha, SHA_DIGEST_LENGTH);
-
-    return ERR_NONE;
-
-
-}

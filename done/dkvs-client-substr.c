@@ -64,9 +64,12 @@ int cli_client_substr(client_t *client, int argc, char **argv){
     }
 
     size_t origin_val_len = strlen(*origin_val);    
-    if (pos < 0)pos = origin_val_len + pos;
-
-    if (pos < 0 || (pos + length > origin_val_len) || length > origin_val_len) {        
+    if (pos < 0) {
+        pos = (int64_t)origin_val_len + pos;
+        if (pos < 0) pos = -1; 
+    }
+    
+    if (pos < 0 || ((size_t)pos + length > origin_val_len) || length > origin_val_len) {
         free(*origin_val);
         free(origin_val);
         return ERR_INVALID_COMMAND;
