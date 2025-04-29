@@ -42,7 +42,7 @@ int contains_node(node_t* list,size_t size ,node_t node){
 }
 
 
-int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_key_t key){
+int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_const_key_t key){
 
     size_t ring_size = ring->size;
 

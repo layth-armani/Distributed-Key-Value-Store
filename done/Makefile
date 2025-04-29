@@ -38,10 +38,7 @@ CFLAGS += -Wcast-align
 CPPFLAGS += -fsanitize=address
 LDFLAGS  += -fsanitize=address
 
-#ifdef CS212_STAFF
-#TODO: restore: CPPFLAGS += -DCS212_STAFF -DWEEK=15
-CFLAGS += -DCS212_STAFF -DWEEK=9
-#endif
+
 
 ifdef DEBUG
 # add the debug flag, may need to comment this line when doing make feedback
