@@ -2,7 +2,7 @@
 
 /**
  * @file tests.h
- * @brief PPS (CS-212) Utilities for tests
+ * @brief CS-202 utilities for tests
  *
  * @author Valérian Rousset, J.-C. Chappelier, E. Bugnion, L. Mermod
  * @date 2017-2024
@@ -159,4 +159,11 @@ static void read_file_and_size(void **buffer, const char *filename, size_t *size
 #define ck_assert_node_eq(node, ip, port, _sha)              \
     do {                                                     \
         ck_assert_mem_eq(node.sha, _sha, SHA_DIGEST_LENGTH); \
+    } while (0)
+
+#define ck_assert_two_nodes_eq(node0, node1)                                   \
+    do {                                                                       \
+        ck_assert_uint_eq(node0.port, node1.port);                             \
+        ck_assert_str_eq(node0.addr, node1.addr);                              \
+        ck_assert_mem_eq(node0.sha, node1.sha, SHA_DIGEST_LENGTH);             \
     } while (0)

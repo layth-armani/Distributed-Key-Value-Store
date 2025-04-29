@@ -34,9 +34,10 @@ void ring_free(ring_t *ring);
 
 /**
  * @brief search nodes storing for a key
+ * @param  list the list of all nodes storing the key
  * @param  ring the ring of nodes to search into
  * @param  wanted_list_size minimum of nodes wanted
  * @param  key the key for which we are looking for
- * @return the list of all nodes storing the key
+ * @return an error code
  */
-int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_key_t key);
+int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_const_key_t key);

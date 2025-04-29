@@ -25,12 +25,13 @@ START_TEST(test_add)
     ck_assert_err_none(node_init(&node1, "127.0.0.1", 10001, 1));
 
     ck_assert_err_none(node_list_add(&list, node0));
-
     ck_assert_int_eq(list.size, 1);
 
     ck_assert_err_none(node_list_add(&list, node1));
-
     ck_assert_int_eq(list.size, 2);
+
+    node_end(&node0);
+    node_end(&node1);
 
     node_list_free(&list);
 }
@@ -71,9 +72,13 @@ START_TEST(test_sort)
 
     node_list_sort(&list, comp);
 
-    ck_assert_mem_eq(&list.nodes[0], &node0, sizeof(node0));
-    ck_assert_mem_eq(&list.nodes[1], &node1, sizeof(node1));
-    ck_assert_mem_eq(&list.nodes[2], &node2, sizeof(node2));
+    ck_assert_two_nodes_eq(list.nodes[0], node0);
+    ck_assert_two_nodes_eq(list.nodes[1], node1);
+    ck_assert_two_nodes_eq(list.nodes[2], node2);
+
+    node_end(&node0);
+    node_end(&node1);
+    node_end(&node2);
 
     node_list_free(&list);
 }
