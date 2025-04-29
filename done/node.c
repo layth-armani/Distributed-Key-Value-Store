@@ -22,6 +22,7 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
     strncpy(address,ip,strlen(ip)+1);
     node->addr = address;
     node->port = port;
+    
 
     
     char* string_to_hash = calloc(STRING_LENGTH_SHA, sizeof(char));
@@ -30,7 +31,7 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
         free(address);
         return ERR_OUT_OF_MEMORY;
     }
-    unsigned char* sha = calloc(STRING_LENGTH_SHA, sizeof(char));
+    unsigned char* sha = calloc(SHA_DIGEST_LENGTH, sizeof(char));
     if (string_to_hash == NULL)
     {
         free(address);

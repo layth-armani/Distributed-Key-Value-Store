@@ -46,7 +46,6 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
 
     size_t ring_size = ring->size;
 
-    node_list_print(ring);
     
     size_t index = 0;
     unsigned char key_sha[SHA_DIGEST_LENGTH];
@@ -79,4 +78,30 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
 
 void ring_free(ring_t *ring){
     node_list_free(ring);
+}
+
+
+int copy_node(const node_t node, node_t* copy){
+
+    copy->addr = calloc(strlen(node.addr)+1 , sizeof(char));
+    if (copy->addr == NULL)
+    {
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    copy->sha = calloc(SHA_DIGEST_LENGTH, sizeof(char));
+
+    if (copy->addr == NULL)
+    {
+        free(copy->addr);
+        return ERR_OUT_OF_MEMORY;
+    }
+    
+    copy->port = node.port;
+    strncpy(copy->addr, node.addr, strlen(node.addr)+1);
+    memcpy(copy->sha,node.sha, SHA_DIGEST_LENGTH);
+
+    return ERR_NONE;
+
+
 }
