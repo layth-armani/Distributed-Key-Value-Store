@@ -223,7 +223,7 @@ dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key) {
 
 void Htable_print(const Htable_t* table) {
     if (table == NULL || table->size==0) {
-        printf("Hashtable is NULL or Empty.\n");
+        fprintf(stderr,"Hashtable is NULL or Empty.\n");
         return;
     }
 
