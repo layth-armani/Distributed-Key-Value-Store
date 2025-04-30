@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/times.h> // for struct timeval
 #include <unistd.h>
 
 // ======================================================================
