@@ -33,7 +33,6 @@ int contains_node(node_t* list,size_t size ,node_t node){
         if (!strncmp(list[i].addr,node.addr,strlen(list[i].addr)) 
             && (list[i].port == node.port))
         {
-            printf("Is the same server\n");
             return 1;
             
         }

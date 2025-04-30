@@ -5,8 +5,6 @@
 #include "args.h"
 #include "util.h"
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-#define min(a, b) ((a) < (b) ? (a) : (b))
 
 
 /**
@@ -23,37 +21,10 @@ int check_Valid_NWR (args_t* args){
     return check;
 }
 
-
-int check_valid_option(char* c) {
-    if (!c || (strlen(c)==0)) {
-        return 0; 
-    }
-
-    for (int i = 0; c[i] != '\0'; i++) {
-        if (c[i] < '0' || c[i] > '9') {
-            return 0; 
-        }
-    }
-
-    return 1; 
-}
-
-
 int check_valid_flag(char* str, const char* option, int valid){
     return !strncmp(str,option,strlen(option)) && valid;
 }
 
-
-
-
-/**
- * @brief parse optional arguments
- * @param args (output) the args_t struct to be initialized
- * @param supported_args OR'ed args_kind flags of supported options
- * @param argc (output) the number of arguments remaining (after optional arguments have been parsed)
- * @param rem_argv (output) the array of remaining arguments
- * @return an error code
- */
 int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_argv) {
     if (!args || !argc || !rem_argv) {
         return ERR_INVALID_ARGUMENT;
@@ -72,10 +43,8 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             --(*argc);
             ++char_list;
 
-            if (*argc == 0 || !check_valid_option(char_list[0])) {
-                return ERR_INVALID_COMMAND;
-            }
-            if ((N = atouint32(char_list[0])) <= 0) {
+            
+            if (*argc == 0 || (N = atouint32(char_list[0])) == 0) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;
@@ -85,10 +54,8 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
         else if (check_valid_flag(char_list[0], "-w", option_W)) {
             --(*argc);
             ++char_list;
-            if (*argc == 0 || !check_valid_option(char_list[0])) {
-                return ERR_INVALID_COMMAND;
-            }
-            if ((W = atouint32(char_list[0])) <= 0) {
+           
+            if (*argc == 0 ||  (W = atouint32(char_list[0])) == 0) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;
@@ -98,11 +65,8 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
         else if (check_valid_flag(char_list[0], "-r", option_R)) {
             --(*argc);
             ++char_list;
-
-            if (*argc == 0 || !check_valid_option(char_list[0])) {
-                return ERR_INVALID_COMMAND;
-            }
-            if ((R = atouint32(char_list[0])) <= 0) {
+            
+            if (*argc == 0 || (R = atouint32(char_list[0])) == 0) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;
@@ -114,19 +78,16 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             endParse = 1;
         }
 
-        
-
-        
     }
 
     if (N == 0) {
-        N = (W != 0 || R != 0) ? max(R, W) : DKVS_DEFAULT_N;
+        N = (W != 0 || R != 0) ? MAX(R, W) : DKVS_DEFAULT_N;
     }
     if (R == 0) {
-        R = min(DKVS_DEFAULT_R, N);
+        R = MIN(DKVS_DEFAULT_R, N);
     }
     if (W == 0) {
-        W = min(DKVS_DEFAULT_W, N);
+        W = MIN(DKVS_DEFAULT_W, N);
     }
 
     if (R > N || W > N) {

@@ -13,7 +13,7 @@ START_TEST(test_init_null_args)
     char *rem_args[] = {NULL};
     char **args = rem_args;
 
-    ;
+    
 
     ck_assert_err(client_init(NULL, 0, &argc, &args), ERR_INVALID_ARGUMENT);
     ck_assert_err(client_init(&c, 0, NULL, &args), ERR_INVALID_ARGUMENT);
