@@ -144,6 +144,26 @@ START_TEST(test_getnodes_count_must_be_positive)
 }
 END_TEST
 
+START_TEST(test_getnodes_ip_must_be_dot_notation)
+{
+    node_list_t list = {0};
+
+    int ret = chdir(DATA_DIR "/servers-invalid-ip");
+    ck_assert_int_eq(ret, 0); // data directory does not exist :-(
+    ck_assert_err(get_nodes(&list), ERR_ADDRESS);
+}
+END_TEST
+
+START_TEST(test_getnodes_ip_must_have_correct_range)
+{
+    node_list_t list = {0};
+
+    int ret = chdir(DATA_DIR "/servers-invalid-ip2");
+    ck_assert_int_eq(ret, 0); // data directory does not exist :-(
+    ck_assert_err(get_nodes(&list), ERR_ADDRESS);
+}
+END_TEST
+
 Suite *node_list_suite(void)
 {
     Suite *s;
@@ -160,6 +180,9 @@ Suite *node_list_suite(void)
     Add_Test_With_Fixture(s, test_get_single_nodes, nope, restore_path);
     Add_Test_With_Fixture(s, test_get_multiple_nodes, nope, restore_path);
     Add_Test_With_Fixture(s, test_getnodes_count_must_be_positive, nope, restore_path);
+
+    Add_Test_With_Fixture(s, test_getnodes_ip_must_be_dot_notation, nope, restore_path);
+    Add_Test_With_Fixture(s, test_getnodes_ip_must_have_correct_range, nope, restore_path);
 
     return s;
 }
