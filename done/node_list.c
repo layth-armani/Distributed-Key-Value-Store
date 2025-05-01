@@ -5,6 +5,7 @@
 #include "config.h"
 
 #define NODE_LIST_PADDING 128
+#define MAX_IP_LENGTH 16
 
 
 int node_list_server_init(node_list_t* nodes){
@@ -43,7 +44,7 @@ int node_list_server_init(node_list_t* nodes){
         char* port_str = strtok_r(NULL, " \t", &saveptr_token);
         char* id_str = strtok_r(NULL, " \t", &saveptr_token);
     
-        if(ip == NULL || port_str == NULL || id_str == NULL || strlen(ip) > 16 || !strncmp(port_str, "-", 1) || !strncmp(id_str, "-", 1)){
+        if(ip == NULL || port_str == NULL || id_str == NULL || strlen(ip) > MAX_IP_LENGTH || !strncmp(port_str, "-", 1) || !strncmp(id_str, "-", 1)){
             free(buffer);
             return ERR_INVALID_CONFIG;
         }
@@ -164,7 +165,7 @@ int node_list_add(node_list_t *list, node_t node){
 
     node_copy.sha = malloc(SHA_DIGEST_LENGTH);
     if (node_copy.sha == NULL) {
-        free((void*)node_copy.addr);
+        node_end(&node_copy);
         return ERR_OUT_OF_MEMORY;
     }
     memcpy(node_copy.sha, node.sha, SHA_DIGEST_LENGTH);

@@ -7,7 +7,7 @@
 #include "node.h"
 
 #define STRING_LENGTH_SHA 40
-#define MAX_IP_LENGTH 16
+
 
 int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
     if (node == NULL || ip == NULL || strlen(ip) == 0){
