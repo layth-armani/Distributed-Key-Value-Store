@@ -5,19 +5,21 @@ from error import *
 from shutil import copyfile
 import glob
 
-SRC_DIR = os.getenv('SRC_DIR', "../../done")
+SRC_DIR = os.getenv("SRC_DIR", "../../done")
 EXE = f"./dkvs-client"
 SERVER_EXE = f"./dkvs-server"
 FAKE_EXE = f"./fake-dkvs-client-"
 TMP_DIR = f"/tmp/cs202"
 
+
 class DKVSTests(unittest.TestCase):
-    FAIL_REGEX=r"FAIL"
-    OK_REGEX=r"OK"
+    FAIL_REGEX = r"FAIL"
+    OK_REGEX = r"OK"
 
     def setUp(self):
         self.commands = []
         self.running_servers = []
+        self.server_file = ""
 
         os.makedirs(TMP_DIR, exist_ok=True)
 
@@ -34,7 +36,9 @@ class DKVSTests(unittest.TestCase):
             os.chmod(f"{TMP_DIR}/{file}", 0o777)
 
         self.create_server_file(
-            ["127.0.0.1", "1234", "1"], ["127.0.0.1", "1235", "1"], ["127.0.0.1", "1236", "1"]
+            ["127.0.0.1", "1234", "1"],
+            ["127.0.0.1", "1235", "1"],
+            ["127.0.0.1", "1236", "1"],
         )
 
     def tearDown(self):
@@ -50,9 +54,9 @@ class DKVSTests(unittest.TestCase):
             return word.removeprefix(TMP_DIR).lstrip("/")
 
         def add_quotes(word: str):
-            return '"' + word  + '"' if (not word or ' ' in word) else word
+            return '"' + word + '"' if (not word or " " in word) else word
 
-        return ' '.join([add_quotes(remove_tmpdir_prefix(word)) for word in command])
+        return " ".join([add_quotes(remove_tmpdir_prefix(word)) for word in command])
 
     def run(self, result=None):
         failure_count = len(result.failures) if result else 0
@@ -60,6 +64,10 @@ class DKVSTests(unittest.TestCase):
         res = unittest.TestCase.run(self, result)  # call superclass run method
 
         if failure_count != len(res.failures):
+            sf_print = ""
+            if self.server_file != "":
+                sf_print = "\n WITH SERVER FILE:\n\n" + self.server_file
+
             res.failures[-1] = (
                 res.failures[-1][0],
                 res.failures[-1][1]
@@ -67,6 +75,7 @@ class DKVSTests(unittest.TestCase):
                 + "\n "
                 + "\n ".join([f"{self.nice_format(cmd)}" for cmd in self.commands])
                 + "\n "
+                + sf_print
                 + "\n --------------------------------------------------\n",
             )
 
@@ -105,12 +114,19 @@ class DKVSTests(unittest.TestCase):
         (ret, out, err) = self.client("get", key, fake=fake)
 
         self.assertErr(ret, "ERR_NONE")
-        self.assertRegex(out, f"\\nOK\\s+{value}$") if value else self.assertRegex(out, f"\\nOK\\s*$")
+        (
+            self.assertRegex(out, f"\\nOK\\s+{value}$")
+            if value
+            else self.assertRegex(out, f"\\nOK\\s*$")
+        )
 
     def create_server_file(self, *servers):
+        self.server_file = ""
         with open(f"{TMP_DIR}/servers.txt", "w") as file:
             for s in servers:
-                file.write(" ".join(s) + "\n")
+                line = " ".join(s) + "\n"
+                file.write(line)
+                self.server_file += line
 
     def client(self, *args, w=None, r=None, n=None, fake=None):
         cmd = [f"{TMP_DIR}/{FAKE_EXE}{fake}" if fake else f"{TMP_DIR}/{EXE}"]
@@ -138,8 +154,14 @@ class DKVSTests(unittest.TestCase):
 
         return (res.returncode, res.stdout.strip(), res.stderr.strip())
 
-    def server(self, ip, port):
+    def server(self, ip, port, logfile=None, **initial_values):
         cmd = [SERVER_EXE, ip, port]
+
+        for k, v in initial_values.items():
+            cmd += [k, v]
+
+        if logfile:
+            cmd += [f">{logfile}", "2>&1"]
         self.commands.append(cmd + ["&"])
         self.running_servers.append(subprocess.Popen(cmd, cwd=TMP_DIR))
 
