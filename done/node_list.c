@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <errno.h>
+#include <arpa/inet.h>
 #include "node.h"
 #include "node_list.h"
 #include "config.h"
@@ -162,6 +163,7 @@ int node_list_add(node_list_t *list, node_t node){
 
     node_copy.addr = strndup(node.addr, strlen(node.addr) + 1);
     node_copy.port = node.port;
+    memcpy(&node_copy.addr_s, &node.addr_s, sizeof(node.addr_s));
 
     node_copy.sha = malloc(SHA_DIGEST_LENGTH);
     if (node_copy.sha == NULL) {
@@ -213,6 +215,6 @@ void node_list_print(const node_list_t *list)
             printf("%02x", node->sha[j]);
         }
 
-        printf(" (%s %d)\n", node->addr, node->port);
+        printf(" (%s %d)\n", inet_ntoa(node->addr_s.sin_addr), ntohs(node->addr_s.sin_port));
     }
 }

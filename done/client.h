@@ -12,6 +12,7 @@
 #include "args.h"
 #include "error.h"
 #include "ring.h"
+#include "socket_layer.h"
 
 /**
  * @brief client state
@@ -20,6 +21,8 @@ struct client
 {
     args_t args;
     ring_t* ring;
+    int socket; 
+
 };
 
 typedef struct client client_t;

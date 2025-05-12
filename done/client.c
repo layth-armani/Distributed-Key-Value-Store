@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "client.h"
 #include "util.h"
 
@@ -19,8 +20,15 @@ int client_init(client_t *client, size_t supported_args, int *argc, char ***argv
             return ERR_OUT_OF_MEMORY;
         }
     }
+    int fd = get_socket(0);
+    if (fd < 0) return fd;
+    client->socket = fd;
     
-    return ring_init(client->ring);
+    int ret = ring_init(client->ring);
+    if (ret != ERR_NONE){
+        close(fd);
+    }
+    return ret;
 }
 
 
@@ -30,5 +38,6 @@ void client_end(client_t *client){
     {
         ring_free(client->ring);
         free(client->ring);
+        close(client->socket);
     }
 }

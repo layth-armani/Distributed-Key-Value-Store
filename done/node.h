@@ -12,12 +12,14 @@
 
 #include "hashtable.h"
 #include "error.h"
+#include "socket_layer.h"
 
 
 struct node {
     const char *addr;
     uint16_t port;
     unsigned char* sha;
+    struct sockaddr_in addr_s;
 };
 /**
  * @brief node data structure

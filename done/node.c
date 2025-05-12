@@ -2,9 +2,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdio.h>
 #include "hashtable.h"
 #include "error.h"
 #include "node.h"
+#include "util.h"
 
 #define STRING_LENGTH_SHA 40
 
@@ -14,6 +16,21 @@ int node_init(node_t *node, const char *ip, uint16_t port, size_t node_id){
         fprintf(stderr, "Invalid Arguments for initialization of a node: Returning ERR_INVALID_ARGUMENT\n");
         return ERR_INVALID_ARGUMENT;
     }
+
+
+
+    struct sockaddr_in server_addr;
+    zero_init_var(server_addr);
+    int err = get_server_addr(ip, port, &server_addr);
+
+    if(err!= ERR_NONE){
+        return ERR_ADDRESS;
+    }
+
+    node->addr_s = server_addr;
+    
+
+
     char* address = NULL;
     if((address = calloc(strlen(ip)+1, sizeof(char))) == NULL){
         fprintf(stderr, "Couldn't allocate memory for the Node Address: Returning ERR_OUT_OF_MEMORY\n");
@@ -66,6 +83,11 @@ void node_end(node_t *node){
 }
 
 int node_cmp_sha(const node_t *first, const node_t *second){
+    if (first == NULL || second == NULL)
+    {
+        return 0;
+    }
+    
     return memcmp(first->sha,second->sha,SHA_DIGEST_LENGTH);
 }
 

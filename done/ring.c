@@ -30,8 +30,9 @@ int contains_node(node_t* list,size_t size ,node_t node){
 
     for (size_t i = 0; i < size ; i++)
     {
-        if (!strncmp(list[i].addr,node.addr,strlen(list[i].addr)) 
-            && (list[i].port == node.port))
+        if (list[i].addr_s.sin_family == node.addr_s.sin_family &&
+            list[i].addr_s.sin_port == node.addr_s.sin_port &&
+            list[i].addr_s.sin_addr.s_addr == node.addr_s.sin_addr.s_addr)
         {
             return 1;
             
