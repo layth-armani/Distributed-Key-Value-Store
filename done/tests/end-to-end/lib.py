@@ -23,7 +23,11 @@ class DKVSTests(unittest.TestCase):
 
         if os.path.exists(f"{SRC_DIR}/{SERVER_EXE}"):
             copyfile(f"{SRC_DIR}/{SERVER_EXE}", f"{TMP_DIR}/{SERVER_EXE}")
-            os.chmod(f"{SRC_DIR}/{SERVER_EXE}", 0o777)
+            os.chmod(f"{TMP_DIR}/{SERVER_EXE}", 0o777)
+
+        if os.path.exists(f"{SRC_DIR}/{EXE}"):
+            copyfile(f"{SRC_DIR}/{EXE}", f"{TMP_DIR}/{EXE}")
+            os.chmod(f"{TMP_DIR}/{EXE}", 0o777)
 
         for file in glob.glob(f"{FAKE_EXE}*"):
             copyfile(file, f"{TMP_DIR}/{file}")
@@ -34,12 +38,21 @@ class DKVSTests(unittest.TestCase):
         )
 
     def tearDown(self):
+        if len(self.running_servers) > 0:
+            self.commands.append(["killall", "dkvs-server"])
+
         for serv in self.running_servers:
             serv.send_signal(2)
             serv.wait()
 
     def nice_format(self, command):
-        return ' '.join(['"' + word  + '"' if (not word or ' ' in word) else word for word in command])
+        def remove_tmpdir_prefix(word: str):
+            return word.removeprefix(TMP_DIR).lstrip("/")
+
+        def add_quotes(word: str):
+            return '"' + word  + '"' if (not word or ' ' in word) else word
+
+        return ' '.join([add_quotes(remove_tmpdir_prefix(word)) for word in command])
 
     def run(self, result=None):
         failure_count = len(result.failures) if result else 0
@@ -50,21 +63,33 @@ class DKVSTests(unittest.TestCase):
             res.failures[-1] = (
                 res.failures[-1][0],
                 res.failures[-1][1]
-                + "\n +--------------- TO REPRODUCE, RUN ---------------\n |  "
-                + "\n |  "
-                + "\n |  ".join([f"{self.nice_format(cmd)}" for cmd in self.commands])
-                + "\n |  "
-                + "\n +-------------------------------------------------\n",
+                + "\n ---------------- TO REPRODUCE, RUN ---------------\n"
+                + "\n "
+                + "\n ".join([f"{self.nice_format(cmd)}" for cmd in self.commands])
+                + "\n "
+                + "\n --------------------------------------------------\n",
             )
 
         return res
 
     def assertErr(self, actual, name, context=None):
-        expected = error_code(name)
-        message = f"expected {name}, got {error_name(actual)}"
-        if context:
-            message = message + context
-        self.assertEqual(actual, expected, msg=message)
+        if isinstance(name, list):
+            expected = [error_code(n) for n in name]
+            message = ", ".join(name)
+            message = f"expected one of [{message}], got {error_name(actual)}"
+
+            if context:
+                message = message + context
+
+            self.assertIn(actual, expected, msg=message)
+        else:
+            expected = error_code(name)
+            message = f"expected {name}, got {error_name(actual)}"
+
+            if context:
+                message = message + context
+
+            self.assertEqual(actual, expected, msg=message)
 
     def assertErrNotEquals(
         self,

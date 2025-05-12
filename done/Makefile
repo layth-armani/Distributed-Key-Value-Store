@@ -11,7 +11,7 @@
 
 # Note: builds with address sanitizer by default
 
-TEST_DIR = $(PWD)/../done/tests
+TEST_DIR = $(PWD)/../provided/tests
 
 ## You can change the tag to run week07, week08, etc.
 IMAGE := chappeli/cs202-feedback:latest
@@ -23,9 +23,9 @@ IMAGE := chappeli/cs202-feedback:latest
 # ======================================================================
 # Compiler and Link
 
-export CC = gcc
+export CC = clang
 
-CFLAGS += -g -fanalyzer
+CFLAGS += -g
 CFLAGS += -pedantic -Wall
 CFLAGS += -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wwrite-strings \
 -Wconversion -Wunreachable-code -Wcast-qual -W -Wformat=2 -Winit-self -Wuninitialized
@@ -38,8 +38,6 @@ CFLAGS += -Wcast-align
 CPPFLAGS += -fsanitize=address
 LDFLAGS  += -fsanitize=address
 
-
-
 ifdef DEBUG
 # add the debug flag, may need to comment this line when doing make feedback
 #TODO : Make feedback should build with -UDEBUG
@@ -49,7 +47,7 @@ endif
 .PHONY: all all-deferred
 
 # list of C files the .o of which shall not be automatically added to OBJS list
-EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c test-atouintN.c
+EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c dkvs-server.c test-atouintN.c
 
 SRCS = $(filter-out $(EXCLUDE_SRCS), $(wildcard *.c))
 
@@ -73,11 +71,19 @@ fake_network_%.o: fake_network.c fake%.h
 fake-dkvs-client-%: dkvs-client.o fake_network_%.o  $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
+dkvs-client: dkvs-client.o network.o $(OBJS)
+dkvs-server: dkvs-server.o network.o $(OBJS)
+
+udp: udp-test-client udp-test-server
+udp-test-client: util.o udp-test-client.o socket_layer.o
+udp-test-server: util.o udp-test-server.o socket_layer.o
+
 # Computes the valid targets for `all`
 ifneq (,$(wildcard ./*dkvs-client.c))
 TARGETS = fake-dkvs-client
 TARGETS += $(FAKE_TARGETS)
 
+TARGETS += dkvs-client dkvs-server
 endif
 
 ifneq (,$(wildcard ./udp-test-*.c))
@@ -151,13 +157,15 @@ end2end-tests: $(TARGETS)
 	$(call e2e_test,week03-find)
 	$(call e2e_test,week03-substr)
 	$(call e2e_test,week03-cat)
- 
 
 all-end2end-tests: $(TARGETS)
 	- $(call e2e_test,week02)
 	- $(call e2e_test,week03-find)
 	- $(call e2e_test,week03-substr)
 	- $(call e2e_test,week03-cat)
+
+e2e-%:
+	$(call e2e_test,$(@:e2e-%=%))
 
 check: end2end-tests unit-tests
 all-tests: all-end2end-tests all-unit-tests
