@@ -2,8 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdio.h>
-#include "hashtable.h"
 #include "error.h"
 #include "node.h"
 #include "util.h"

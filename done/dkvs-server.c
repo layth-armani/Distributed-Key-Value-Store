@@ -62,15 +62,17 @@ static int out(int error_code)
 int main(int argc, char **argv)
 {
     int err = ERR_NONE;
+    int t = 0;
 
     // usage: prog <IP> <port> [<key> <value> ...]
     if ((argc < 3) || (argc % 2 == 0)) return out(ERR_INVALID_COMMAND);
 
     // --------------- Get port number ---------------
-    uint16_t port = 0; // to be modified
+    uint16_t port = argv[2]; // to be modified
+    const char* ip = argv[1];
 
     // --------------- Lauch UDP server ---------------
-    // to do...
+    int fd = udp_server_init(argv[1], port, t);
     debug_printf("Server listening on %s:%d\n", argv[1], port);
 
     // --------------- Init Hash table ---------------
@@ -82,9 +84,28 @@ int main(int argc, char **argv)
 
     // ...to be continued week 11...
 
+    char buffer[MAX_MSG_SIZE];
     // --------------- Listening loop ---------------
     while (err == ERR_NONE) {
-        // to do...
+
+        struct sockaddr_in address;
+        int ret = get_server_addr(ip,port, &address);
+        udp_read(fd, buffer, MAX_MSG_SIZE, &address);
+
+        debug_printf("Server listening on %s:%d\n", ip, port);
+
+        if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)
+        {
+            server_get(fd, buffer, &address, table);
+        }
+        else if (strlen(buffer) == 0) {
+            err = ERR_NOT_FOUND;
+        } else {
+            server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
+        }
+
+
+
     }
 
     // --------------- Garbage collecting ---------------
