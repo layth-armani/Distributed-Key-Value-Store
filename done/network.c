@@ -65,7 +65,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
 
     node_list_t list = {0 , 0, NULL}; 
    
-    int ret = ring_get_nodes_for_key(client->ring, &list, 10, key);
+    int ret = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
 
     if (ret != ERR_NONE)
     {
