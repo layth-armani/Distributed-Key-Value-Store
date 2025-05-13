@@ -66,13 +66,13 @@ int main(int argc, char **argv)
 
     // usage: prog <IP> <port> [<key> <value> ...]
     if ((argc < 3) || (argc % 2 == 0)) return out(ERR_INVALID_COMMAND);
-
-    // --------------- Get port number ---------------
-    uint16_t port = *argv[2]; // to be modified
     const char* ip = argv[1];
 
+    // --------------- Get port number ---------------
+    uint16_t* port = argv[2]; // to be modified
+
     // --------------- Lauch UDP server ---------------
-    int fd = udp_server_init(argv[1], port, t);
+    int fd = udp_server_init(ip, *port, t);
     debug_printf("Server listening on %s:%d\n", argv[1], port);
 
     // --------------- Init Hash table ---------------
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     while (err == ERR_NONE) {
 
         struct sockaddr_in address;
-        int ret = get_server_addr(ip,port, &address);
+        int ret = get_server_addr(ip, *port, &address);
         udp_read(fd, buffer, MAX_MSG_SIZE, &address);
 
         debug_printf("Server listening on %s:%d\n", ip, port);
