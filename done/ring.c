@@ -46,9 +46,6 @@ int contains_node(node_list_t* list ,node_t* node){
 
 int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_const_key_t key){
 
-    puts("RING");
-    node_list_print(ring);
-    puts("END RING");
     size_t index = 0;
     size_t first_index = -1;
 
@@ -99,9 +96,7 @@ int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_
         ring_index++;
     }
 
-    puts("LIST");
-    node_list_print(list);
-    puts("END LIST");
+    
   
     return ERR_NONE;
 }
