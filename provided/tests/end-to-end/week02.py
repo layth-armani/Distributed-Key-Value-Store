@@ -92,7 +92,8 @@ class Week02(DKVSTests):
         self.assertRegex(out, self.OK_REGEX)
 
     def test_get_empty_key(self):
-        self.assertGetEquals("", "empty", fake="3")
+        (ret, out, err) = self.client("get", "", fake="3")
+        self.assertErr(ret, "ERR_INVALID_ARGUMENT")
 
     def test_get_empty_value(self):
         self.assertGetEquals("empty", "", fake="3")

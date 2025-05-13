@@ -47,7 +47,7 @@ endif
 .PHONY: all all-deferred
 
 # list of C files the .o of which shall not be automatically added to OBJS list
-EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c dkvs-server.c test-atouintN.c
+EXCLUDE_SRCS = udp-test-client.c udp-test-server.c network.c fake_network.c dkvs-client.c dkvs-server.c dkvs-dump-ring.c test-atouintN.c
 
 SRCS = $(filter-out $(EXCLUDE_SRCS), $(wildcard *.c))
 
@@ -78,12 +78,15 @@ udp: udp-test-client udp-test-server
 udp-test-client: util.o udp-test-client.o socket_layer.o
 udp-test-server: util.o udp-test-server.o socket_layer.o
 
+dkvs-dump-ring: dkvs-dump-ring.o network.o $(OBJS)
+
 # Computes the valid targets for `all`
 ifneq (,$(wildcard ./*dkvs-client.c))
 TARGETS = fake-dkvs-client
 TARGETS += $(FAKE_TARGETS)
 
 TARGETS += dkvs-client dkvs-server
+TARGETS += dkvs-dump-ring
 endif
 
 ifneq (,$(wildcard ./udp-test-*.c))
@@ -158,6 +161,7 @@ end2end-tests: $(TARGETS)
 	$(call e2e_test,week03-substr)
 	$(call e2e_test,week03-cat)
 	$(call e2e_test,week06)
+	$(call e2e_test,week07)
 
 all-end2end-tests: $(TARGETS)
 	- $(call e2e_test,week02)
@@ -165,6 +169,7 @@ all-end2end-tests: $(TARGETS)
 	- $(call e2e_test,week03-substr)
 	- $(call e2e_test,week03-cat)
 	- $(call e2e_test,week06)
+	$(call e2e_test,week07)
 
 e2e-%:
 	$(call e2e_test,$(@:e2e-%=%))

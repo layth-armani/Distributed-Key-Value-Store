@@ -17,3 +17,6 @@ test-atouintN
 *.jpg
 tmp.txt
 *.imgfs
+
+LOG*
+dkvs-dump-ring

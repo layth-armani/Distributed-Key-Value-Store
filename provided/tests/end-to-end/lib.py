@@ -8,6 +8,7 @@ import glob
 SRC_DIR = os.getenv("SRC_DIR", "../../done")
 EXE = f"./dkvs-client"
 SERVER_EXE = f"./dkvs-server"
+DUMP_EXE = f"./dkvs-dump-ring"
 FAKE_EXE = f"./fake-dkvs-client-"
 TMP_DIR = f"/tmp/cs202"
 
@@ -30,6 +31,10 @@ class DKVSTests(unittest.TestCase):
         if os.path.exists(f"{SRC_DIR}/{EXE}"):
             copyfile(f"{SRC_DIR}/{EXE}", f"{TMP_DIR}/{EXE}")
             os.chmod(f"{TMP_DIR}/{EXE}", 0o777)
+
+        if os.path.exists(f"{SRC_DIR}/{DUMP_EXE}"):
+            copyfile(f"{SRC_DIR}/{DUMP_EXE}", f"{TMP_DIR}/{DUMP_EXE}")
+            os.chmod(f"{TMP_DIR}/{DUMP_EXE}", 0o777)
 
         for file in glob.glob(f"{FAKE_EXE}*"):
             copyfile(file, f"{TMP_DIR}/{file}")
@@ -186,3 +191,59 @@ class DKVSTests(unittest.TestCase):
             return newmap, oldmap
         else:
             return newmap
+
+    def dump(self):
+        cmd = [f"{TMP_DIR}/{DUMP_EXE}"]
+        self.commands.append(cmd)
+
+        res = subprocess.run(
+            cmd, check=False, capture_output=True, text=True, cwd=TMP_DIR
+        )
+
+        return res.stdout.strip()
+
+    def parse_dump(self, dump: str):
+        nodes = []
+        servers = {}
+
+        lines = [s.strip() for s in dump.splitlines() if s.strip()]
+
+        self.assertEqual(lines[0], "Ring nodes:")
+        lines = lines[1:]
+
+        nodeRe = r"^([a-fA-F\d]{40})\s+\((\d{,3}(?:\.\d{,3}){,3})\s+(\d+)\)$"
+
+        while re.match(nodeRe, lines[0]):
+            m = re.match(nodeRe, lines[0])
+            nodes.append([m.group(1), m.group(2), m.group(3)])
+            lines = lines[1:]
+
+        while not len(lines) == 0:
+            nodeHeaderRe = r"^(\d{,3}(?:\.\d{,3}){,3}:\d+):(.*)$"
+            keyCountRe = r"^storing (\d+) key-value pairs?:$"
+
+            m = re.match(nodeHeaderRe, lines[0])
+            if m is None or m.group(2):
+                lines = lines[1:]
+                continue
+
+            node = m.group(1)
+            servers[node] = {}
+
+            lines = lines[1:]
+            if len(lines) == 0:
+                continue
+
+            m = re.match(keyCountRe, lines[0])
+
+            count = int(m.group(1))
+            lines = lines[1:]
+
+            while len(lines) != 0 and len(lines[0].split(" --> ")) == 2:
+                s = lines[0].split(" --> ")
+                servers[node][s[0]] = s[1]
+                lines = lines[1:]
+
+            self.assertEqual(len(servers[node]), count)
+
+        return nodes, servers

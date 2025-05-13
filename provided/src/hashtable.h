@@ -130,3 +130,17 @@ void kv_list_free(kv_list_t *list);
  * @param table the table to be printed
  */
 void Htable_print(const Htable_t* table);
+
+/**
+ * @brief prints the content of a hashtable in a buffer, starting from index `from`
+ * @param table the table to be printed
+ * @param from the bucket index to start from (included)
+ * @param to   (output) the first bucket index that was NOT included in the print
+ *        (i.e. where to continue from in the next round); equal to `from` in case of errors
+ * @param buffer the buffer where to write into; it should be of size greater or equal to `buffer_size`
+ * @param buffer_size the maximum number of chars to be possibly written into `buffer`
+ * @return ERR_NONE on success;
+ *         ERR_INVALID_ARGUMENT if buffer is NULL or buffer_size is 0;
+ *         ERR_INVALID_CONFIG if cannot write further in buffer (buffer_size too small).
+ */
+int Htable_dump(const Htable_t* table, size_t from, size_t* to, char* buffer, size_t buffer_size);
