@@ -9,6 +9,7 @@
 #include "error.h"
 #include "util.h"
 
+#include <errno.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -20,30 +21,40 @@
 int get_socket(time_t t)
 {
     int fd = -1;
-    if (t<0) return ERR_INVALID_ARGUMENT;
-    
+    if (t < 0) return ERR_INVALID_ARGUMENT;
+
     fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (fd == -1) return ERR_NETWORK;
 
+    int optval = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) != 0) {
+        close(fd);
+        return ERR_NETWORK;
+    }
+
+    #ifdef SO_REUSEPORT
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) != 0) {
+            close(fd);
+            return ERR_NETWORK;
+        }
+    #endif
+
     if (t > 0) {
-        // Set receive timeout
         struct timeval timeout;
-        zero_init_var(timeout);
+        zero_init_var(timeout); 
 
         timeout.tv_sec = t;
         timeout.tv_usec = 0;
 
-        int err = setsockopt(fd,SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-        if (err != 0) {
+        if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) != 0) {
             close(fd);
             return ERR_NETWORK;
         }
-        
-        
     }
 
     return fd;
 }
+
 
 // ======================================================================
 int get_server_addr(const char *ip, uint16_t port,
@@ -71,12 +82,14 @@ int bind_server(int socket, const char *ip, uint16_t port)
     struct sockaddr_in server_addr;
     zero_init_var(server_addr);
 
+
     int err = get_server_addr(ip, port, &server_addr);
     if(err != ERR_NONE) return err;
 
-    if(bind(socket, (const struct sockaddr *) &server_addr, sizeof(server_addr)) != 0) return ERR_NETWORK;
+    int ret = bind(socket, (const struct sockaddr *) &server_addr, sizeof(server_addr));
+    fprintf(stderr, "Bind error : %d \n", errno);
 
-    return err;
+    return ret;
 }
 
 // ======================================================================

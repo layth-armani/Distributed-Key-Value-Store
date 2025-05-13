@@ -53,7 +53,7 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
 static int out(int error_code)
 {
     if (error_code != ERR_NONE) {
-        fprintf(stderr, "ERROR: %s\n", ERR_MSG(error_code));
+        //fprintf(stderr, "ERROR: %s\n", ERR_MSG(error_code));
     }
     return error_code;
 }
@@ -69,10 +69,14 @@ int main(int argc, char **argv)
     const char* ip = argv[1];
 
     // --------------- Get port number ---------------
-    uint16_t* port = argv[2]; // to be modified
+    const char *port_str = argv[2];
+    char *endptr;
+
+    // Convert string to unsigned long
+    uint16_t port = (uint16_t)strtoul(port_str, &endptr, 10);
 
     // --------------- Lauch UDP server ---------------
-    int fd = udp_server_init(ip, *port, t);
+    int fd = udp_server_init(ip, port, t);
     debug_printf("Server listening on %s:%d\n", argv[1], port);
 
     // --------------- Init Hash table ---------------
@@ -83,18 +87,21 @@ int main(int argc, char **argv)
     }
 
     // ...to be continued week 11...
-
+    //perror("Launching Server \n");
+    //fprintf(stderr, "Err : %d \n", err);
     char buffer[MAX_MSG_SIZE];
     // --------------- Listening loop ---------------
     while (err == ERR_NONE) {
 
         struct sockaddr_in address;
-        int ret = get_server_addr(ip, *port, &address);
-        udp_read(fd, buffer, MAX_MSG_SIZE, &address);
-
+        int ret = get_server_addr(ip, port, &address);
+        int bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
+        fprintf(stderr, "String : %s, strel : %u, Bytes %d \n", buffer, strlen(buffer), bytes);
         debug_printf("Server listening on %s:%d\n", ip, port);
+        //fprintf(stderr, "Server listening on %s:%d\n", ip, port);
 
-        if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)
+
+        if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)    
         {
             err = server_get(fd, buffer, &address, table);
         }
