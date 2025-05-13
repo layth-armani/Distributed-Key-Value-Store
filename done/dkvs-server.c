@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     if ((argc < 3) || (argc % 2 == 0)) return out(ERR_INVALID_COMMAND);
 
     // --------------- Get port number ---------------
-    uint16_t port = argv[2]; // to be modified
+    uint16_t port = *argv[2]; // to be modified
     const char* ip = argv[1];
 
     // --------------- Lauch UDP server ---------------
@@ -96,15 +96,13 @@ int main(int argc, char **argv)
 
         if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)
         {
-            server_get(fd, buffer, &address, table);
+            err = server_get(fd, buffer, &address, table);
         }
         else if (strlen(buffer) == 0) {
             err = ERR_NOT_FOUND;
         } else {
-            server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
+            err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
         }
-
-
 
     }
 

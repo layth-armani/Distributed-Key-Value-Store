@@ -13,6 +13,7 @@ int ring_init(ring_t *ring){
     
     if (i != ERR_NONE){
         fprintf(stderr, "Error in get_nodes call: %s\n", ERR_MSG(i));
+        return i;
     }
 
     node_list_sort(ring, node_cmp_sha);
@@ -21,7 +22,7 @@ int ring_init(ring_t *ring){
 
 }
 
-int contains_node(node_t* list,size_t size ,node_t node){
+int contains_node(node_t* list, size_t size ,node_t node){
 
     if (size == 0)
     {

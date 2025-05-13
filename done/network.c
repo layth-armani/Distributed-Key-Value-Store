@@ -63,35 +63,41 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
     M_REQUIRE_NON_NULL(value);
     if (strlen(key) > MAX_MSG_ELEM_SIZE) return ERR_INVALID_ARGUMENT;
 
-    node_list_t* list = {0};
-    int ret = ring_get_nodes_for_key(client->ring, list, client->ring->size, key);
+    node_list_t list = {0 , 0, NULL}; 
+   
+    int ret = ring_get_nodes_for_key(client->ring, &list, 10, key);
 
     if (ret != ERR_NONE)
     {
+        node_list_free(&list);
         return ret;
     }
 
     int fd = get_socket(1);
 
 
-    for (size_t i = 0; i < list->size; i++)
+    for (size_t i = 0; i < list.size; i++)
     {
-        int err1 = bind_server(fd, list->nodes[i].addr,list->nodes[i].port);
+        int err1 = bind_server(fd, list.nodes[i].addr,list.nodes[i].port);
 
         if (err1 != ERR_NONE)
         {
+            node_list_free(&list);
             return err1;
         }
         
 
-        int err2 = server_get_send(fd, list->nodes[i].addr_s, key);
+        int err2 = server_get_send(fd, list.nodes[i].addr_s, key);
 
         if (err2 == ERR_NONE)
         {
+            node_list_free(&list);
             return server_get_recv(fd, value);
         }
     }
-   
+
+
+    node_list_free(&list);
     return ERR_NETWORK;
 }
 
