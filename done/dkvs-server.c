@@ -24,11 +24,19 @@ static int server_get(int fd, dkvs_const_key_t key,
     M_REQUIRE_NON_NULL(key);
     M_REQUIRE_NON_NULL(client);
     M_REQUIRE_NON_NULL(table);
-
-    debug_printf("server get for key \"%s\"\n", key);
-
+    
+    dkvs_const_value_t value = Htable_get_value(table, key);
+    
     ssize_t ret = 0;
-    // ...to be continued week 11...
+    if(value == NULL){
+        debug_printf("value not found for server get for key \"%s\" \n", key);
+        ret = udp_send(fd, "\0", 1, client);
+    }
+    else{
+        debug_printf("server get for key \"%s\" has value \"%s\" \n", key, value);
+        ret = udp_send(fd, value, strlen(value), client);
+        free(value);
+    }
 
     return ret < 0 ? (int) ret : ERR_NONE;
 }
@@ -44,9 +52,17 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
 
     debug_printf("server put for \"%s\" --> \"%s\":\n", key, value);
 
+    int err = Htable_add_value(table, key, value);
     ssize_t ret = 0;
-    // ...to be continued week 11...
-
+    if(err == ERR_NONE){
+        debug_printf("success \n");
+        ret = udp_send(fd, "\0", 1, client);
+    }
+    else {
+       debug_printf("failure \n");
+        ret = udp_send(fd, NULL, 0, client); 
+    }
+    
     return ret < 0 ? (int) ret : ERR_NONE;
 }
 

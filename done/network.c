@@ -50,7 +50,8 @@ static int server_get_recv(int fd, dkvs_value_t* value)
 {
     M_REQUIRE_NON_NULL(value);
 
-    // to do WEEK 11...
+    char buffer[MAX_MSG_ELEM_SIZE];
+    ssize_t bytes = udp_read(fd, buffer, MAX_MSG_ELEM_SIZE, NULL);
     debug_printf("server_get_recv(): read \"%s\" (size: %ld)\n", "", -1l);
 
     return ERR_NETWORK;
