@@ -90,28 +90,26 @@ int main(int argc, char **argv)
     // ...to be continued week 11...
     //perror("Launching Server \n");
     //fprintf(stderr, "Err : %d \n", err);
-    char buffer[MAX_MSG_SIZE];
+    
     // --------------- Listening loop ---------------
     while (err == ERR_NONE) {
+        
+        char* buffer = calloc(MAX_MSG_SIZE, sizeof(char));
+        if (!buffer)
+        {
+            return ERR_OUT_OF_MEMORY;
+        }
+        
+        
 
         struct sockaddr_in address;
         int ret = get_server_addr(ip, port, &address);
 
-        long bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
-        fprintf(stderr, "String : %s, strel : %lu, Bytes %d \n", buffer, strlen(buffer), bytes);
-        debug_printf("Server listening on %s:%ld\n", ip, port);
-        //fprintf(stderr, "Server listening on %s:%d\n", ip, port);
+        size_t bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
+        //fprintf(stderr, "String : %s, strel : %lu, Bytes %d \n", buffer, strlen(buffer), bytes);
+        debug_printf("Received: \"%s\" (size: %zu)\n", buffer, bytes);
 
-
-        if (!memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)
-        {
-            printf("Return of memchr: NO null terminator\n" );
-        }
-        
-
-        
-
-        if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)    
+        if (memchr(buffer, '\0', bytes) != NULL)    
         {
             err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
         }
@@ -119,13 +117,16 @@ int main(int argc, char **argv)
             err = ERR_NOT_FOUND;
         } else {
             err = server_get(fd, buffer, &address, table);
-        }
+        }   
+
+        free(buffer);
 
     }
 
     // --------------- Garbage collecting ---------------
     if (err != ERR_NONE) {
         // maybe add something here (or simply remove that comment)...
+        
         Htable_free(&table);
     }
 

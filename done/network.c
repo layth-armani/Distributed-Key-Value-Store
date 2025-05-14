@@ -121,9 +121,6 @@ static int server_put_send(int fd, struct sockaddr_in server_addr,
         return ERR_INVALID_ARGUMENT;
     }
     
-
-
-
     debug_printf("server_put_send(): sending \"%s\" --> \"%s\" to %s:%d\n",
                  key, value,
                  inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
@@ -139,6 +136,8 @@ static int server_put_send(int fd, struct sockaddr_in server_addr,
     {
         return ERR_NETWORK;
     }
+
+
 
     return ERR_NONE;
 }
