@@ -54,7 +54,7 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
 static int out(int error_code)
 {
     if (error_code != ERR_NONE) {
-        //fprintf(stderr, "ERROR: %s\n", ERR_MSG(error_code));
+        fprintf(stderr, "ERROR: %s\n", ERR_MSG(error_code));
     }
     return error_code;
 }
@@ -88,8 +88,6 @@ int main(int argc, char **argv)
     }
 
     // ...to be continued week 11...
-    //perror("Launching Server \n");
-    //fprintf(stderr, "Err : %d \n", err);
     
     // --------------- Listening loop ---------------
     while (err == ERR_NONE) {
@@ -103,13 +101,22 @@ int main(int argc, char **argv)
         
 
         struct sockaddr_in address;
-        int ret = get_server_addr(ip, port, &address);
+        err = get_server_addr(ip, port, &address);
+        if (err != ERR_NONE){
+            free(buffer);
+            return out(err);
+        }
+        
 
-        size_t bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
-        //fprintf(stderr, "String : %s, strel : %lu, Bytes %d \n", buffer, strlen(buffer), bytes);
-        debug_printf("Received: \"%s\" (size: %zu)\n", buffer, bytes);
+        ssize_t bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
+        debug_printf("Received: \"%s\" (size: %ld)\n", buffer, bytes);
+        if(bytes < 0){
+            free(buffer);
+            return out(err);
+        }
 
-        if (memchr(buffer, '\0', bytes) != NULL)    
+
+        if (memchr(buffer, '\0', (size_t)bytes) != NULL)    
         {
             err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
         }
@@ -124,9 +131,7 @@ int main(int argc, char **argv)
     }
 
     // --------------- Garbage collecting ---------------
-    if (err != ERR_NONE) {
-        // maybe add something here (or simply remove that comment)...
-        
+    if (err != ERR_NONE) {        
         Htable_free(&table);
     }
 

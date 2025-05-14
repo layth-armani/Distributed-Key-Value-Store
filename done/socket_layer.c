@@ -87,9 +87,8 @@ int bind_server(int socket, const char *ip, uint16_t port)
     if(err != ERR_NONE) return err;
 
     int ret = bind(socket, (const struct sockaddr *) &server_addr, sizeof(server_addr));
-    fprintf(stderr, "Bind error : %d \n", errno);
-
-    return ret;
+    if (ret == 0)return ERR_NONE;
+    return ERR_NETWORK;
 }
 
 // ======================================================================
