@@ -157,12 +157,14 @@ end2end-tests: $(TARGETS)
 	$(call e2e_test,week03-find)
 	$(call e2e_test,week03-substr)
 	$(call e2e_test,week03-cat)
+	$(call e2e_test,week06)
 
 all-end2end-tests: $(TARGETS)
 	- $(call e2e_test,week02)
 	- $(call e2e_test,week03-find)
 	- $(call e2e_test,week03-substr)
 	- $(call e2e_test,week03-cat)
+	- $(call e2e_test,week06)
 
 e2e-%:
 	$(call e2e_test,$(@:e2e-%=%))
