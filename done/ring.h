@@ -36,7 +36,7 @@ void ring_free(ring_t *ring);
  * @brief search nodes storing for a key
  * @param  list the list of all nodes storing the key
  * @param  ring the ring of nodes to search into
- * @param  wanted_list_size minimum of nodes wanted
+ * @param  wanted_list_size maximum number of nodes wanted
  * @param  key the key for which we are looking for
  * @return an error code
  */

@@ -96,6 +96,28 @@ START_TEST(test_ring_get_skips_matched_server)
 }
 END_TEST
 
+START_TEST(test_ring_get_wrap)
+{
+    ring_t ring = {0};
+
+    int ret = chdir(DATA_DIR "/servers-valid");
+    ck_assert_int_eq(ret, 0); // data directory does not exist :-(
+    ck_assert_err_none(ring_init(&ring));
+
+    node_list_t list = {0};
+    ck_assert_err_none(ring_get_nodes_for_key(&ring, &list, 10, "a-key"));
+
+    ck_assert_int_eq(list.size, 3);
+
+    ck_assert_node_eq(list.nodes[0], "192.168.1.10", 1235, node1_sha);
+    ck_assert_node_eq(list.nodes[1], "8.8.8.8", 1236, node5_sha);
+    ck_assert_node_eq(list.nodes[2], "127.0.0.1", 1234, node0_sha);
+
+    node_list_free(&list);
+    ring_free(&ring);
+}
+END_TEST
+
 START_TEST(test_ring_get_skips_matched_coucou)
 {
     ring_t ring = {0};
@@ -131,6 +153,7 @@ Suite *ring_suite()
     Add_Test_With_Fixture(s, test_ring_get_stops_at_wanted, nope, restore_path);
     Add_Test_With_Fixture(s, test_ring_get_skips_matched_server, nope, restore_path);
     Add_Test_With_Fixture(s, test_ring_get_skips_matched_coucou, nope, restore_path);
+    Add_Test_With_Fixture(s, test_ring_get_wrap, nope, restore_path);
 
     return s;
 }
