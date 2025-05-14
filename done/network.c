@@ -33,13 +33,12 @@ static int server_get_send(int fd, struct sockaddr_in server_addr, dkvs_const_ke
     M_REQUIRE_NON_NULL(key);
     debug_printf("server_get_send(): asking for key \"%s\" to %s:%d\n",
                  key, inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
-    fprintf(stderr,"server_get_send(): asking for key \"%s\" to %s:%d\n",
-                 key, inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+    //fprintf(stderr,"server_get_send(): asking for key \"%s\" to %s:%d\n", key, inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
     // to do WEEK 10...
 
-    int nb_bytes = udp_send(fd, key, strlen(key), &server_addr);
+    ssize_t nb_bytes = udp_send(fd, key, strlen(key), &server_addr);
 
-    if (nb_bytes != strlen(key))
+    if (nb_bytes != (ssize_t)strlen(key))
     {
         return ERR_NETWORK;
     }
@@ -70,12 +69,12 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
 
     node_list_t list = {0 , 0, NULL}; 
    
-    int ret = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
+    int err = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
 
-    if (ret != ERR_NONE)
+    if (err != ERR_NONE)
     {
         node_list_free(&list);
-        return ret;
+        return err;
     }
 
     
@@ -88,26 +87,24 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
 
-        fprintf(stderr, "Binding to %s:%d\n", buf,ntohs(list.nodes[i].addr_s.sin_port));
+        //fprintf(stderr, "Binding to %s:%d\n", buf,ntohs(list.nodes[i].addr_s.sin_port));
         //fprintf(stderr, "%d\n", err1);
 
 
-        int err2 = server_get_send(fd, list.nodes[i].addr_s, key);
+        err = server_get_send(fd, list.nodes[i].addr_s, key);
         //fprintf(stderr, "%d\n", err2);
-
-
-        if (err2 == ERR_NONE)
+        if (err == ERR_NONE)
         {
             node_list_free(&list);
-            int err3 = server_get_recv(fd, value);
+            err = server_get_recv(fd, value);
             //fprintf(stderr, "%d\n", err3);
-            return err3;
+            return err;
         }
     }
 
 
     node_list_free(&list);
-    return ERR_NETWORK;
+    return err;
 }
 
 // ======================================================================
@@ -117,13 +114,14 @@ static int server_put_send(int fd, struct sockaddr_in server_addr,
     M_REQUIRE_NON_NULL(key);
     M_REQUIRE_NON_NULL(value);
 
-    int msg_size = strlen(key) + strlen(value)+1;
+    size_t msg_size = strlen(key) + strlen(value) + 1;
 
     if (msg_size > MAX_MSG_SIZE)
     {
         return ERR_INVALID_ARGUMENT;
     }
     
+
 
 
     debug_printf("server_put_send(): sending \"%s\" --> \"%s\" to %s:%d\n",
@@ -133,10 +131,11 @@ static int server_put_send(int fd, struct sockaddr_in server_addr,
     // to do WEEK 10...
 
     char buffer[msg_size];
-    snprintf(buffer, msg_size, "%s\0%s", key, value);
+    memcpy(buffer, key, strlen(key) + 1);
+    memcpy(&buffer[strlen(key)+1] , value, strlen(value));
 
-    int nb_bytes = udp_send(fd, buffer, msg_size , &server_addr);
-    if (nb_bytes != msg_size)
+    ssize_t nb_bytes = udp_send(fd, buffer, msg_size , &server_addr);
+    if (nb_bytes != (ssize_t)msg_size)
     {
         return ERR_NETWORK;
     }
@@ -155,12 +154,12 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
 
     // to do WEEK 10...
     node_list_t list = {0, 0 , NULL};
-    int ret = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
+    int err = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
 
-    if (ret != ERR_NONE)
+    if (err != ERR_NONE)
     {
         node_list_free(&list);
-        return ret;
+        return err;
     }
 
     
@@ -169,11 +168,9 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
 
     for (size_t i = 0; i < list.size; i++)
     {
-        
-        int err2 = server_put_send(fd, list.nodes[i].addr_s, key, value);
-        
+        err = server_put_send(fd, list.nodes[i].addr_s, key, value);
     }
    
     node_list_free(&list);
-    return ERR_NETWORK;
+    return err;
 }

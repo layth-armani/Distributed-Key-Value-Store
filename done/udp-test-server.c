@@ -7,7 +7,7 @@
     #define CS202_DEFAULT_IP "127.0.0.1"
     #define CS202_DEFAULT_PORT 1234
 
-    int main() {
+    int main(void) {
         int socket_fd = udp_server_init(CS202_DEFAULT_IP, CS202_DEFAULT_PORT, 0);
         if (socket_fd < 0) {
             perror("Error initializing server");
@@ -31,14 +31,11 @@
                 continue;
             }
 
-            number = (number);
-
             char client_ip[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip));
             printf("Received message from %s:%d: %u\n", client_ip, ntohs(client_addr.sin_port), number);
 
             number++;
-            number = (number);
             if (udp_send(socket_fd, (char *)&number, sizeof(number), &client_addr) < 0) {
                 perror("Error sending response");
             } else {

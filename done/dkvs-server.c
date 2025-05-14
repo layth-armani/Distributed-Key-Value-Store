@@ -9,6 +9,7 @@
 #include "hashtable.h"
 #include "socket_layer.h"
 
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,20 +96,29 @@ int main(int argc, char **argv)
 
         struct sockaddr_in address;
         int ret = get_server_addr(ip, port, &address);
-        int bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
-        fprintf(stderr, "String : %s, strel : %u, Bytes %d \n", buffer, strlen(buffer), bytes);
-        debug_printf("Server listening on %s:%d\n", ip, port);
+
+        long bytes = udp_read(fd, buffer, MAX_MSG_SIZE, &address);
+        fprintf(stderr, "String : %s, strel : %lu, Bytes %d \n", buffer, strlen(buffer), bytes);
+        debug_printf("Server listening on %s:%ld\n", ip, port);
         //fprintf(stderr, "Server listening on %s:%d\n", ip, port);
 
 
-        if (!memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)    
+        if (!memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)
         {
-            err = server_get(fd, buffer, &address, table);
+            printf("Return of memchr: NO null terminator\n" );
         }
-        else if (strlen(buffer) == 0) {
+        
+
+        
+
+        if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)    
+        {
+            err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
+        }
+        else if (buffer[0]  == '\0') {
             err = ERR_NOT_FOUND;
         } else {
-            err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
+            err = server_get(fd, buffer, &address, table);
         }
 
     }

@@ -47,26 +47,26 @@ int contains_node(node_list_t* list ,node_t* node){
 int ring_get_nodes_for_key(const ring_t *ring, node_list_t* list, size_t wanted_list_size, dkvs_const_key_t key){
 
     size_t index = 0;
-    size_t first_index = -1;
+    size_t first_index = 0;
 
     unsigned char key_sha[SHA_DIGEST_LENGTH];
 
-    SHA1((unsigned char*)key, strlen(key), key_sha);
+    SHA1((const unsigned char*)key, strlen(key), key_sha);
 
 
     // Find first node in the ring with a bigger or equal SHA
 
-    while(first_index == -1 && index < ring->size)
+    while(first_index == 0 && index < ring->size)
     {
         if (memcmp(ring->nodes[index].sha, key_sha, SHA_DIGEST_LENGTH) >= 0)
         {
             first_index = index;
-
+            index = ring->size - 1;
         }
         index++;
     }
 
-    first_index = (first_index == -1) ? 0 : first_index;
+    
 
     // Add to the list the nodes
     

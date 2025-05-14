@@ -135,7 +135,7 @@ ssize_t udp_send(int socket, const char *response, size_t response_len,
 
     socklen_t addr_len = sizeof(struct sockaddr_in);
     const ssize_t res = sendto(socket, response, response_len, 0, 
-        cli_addr ? (struct sockaddr *)cli_addr : NULL, addr_len);
+        cli_addr ? (const struct sockaddr *)cli_addr : NULL, addr_len);
 
     return res < 0 ? ERR_NETWORK : res;
 }
