@@ -80,14 +80,13 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
 
     
 
-    int fd = get_socket(1);
+    int fd = client->socket;
 
     for (size_t i = 0; i < list.size; i++)
     {
         char buf[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
-        int err1 = bind_server(fd, buf,ntohs(list.nodes[i].addr_s.sin_port));
 
         fprintf(stderr, "Binding to %s:%d\n", buf,ntohs(list.nodes[i].addr_s.sin_port));
         //fprintf(stderr, "%d\n", err1);
@@ -165,12 +164,11 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
     }
 
     
-    int fd = get_socket(1);
+    int fd = client->socket;
 
 
     for (size_t i = 0; i < list.size; i++)
     {
-        int err1 = bind_server(fd, list.nodes[i].addr,list.nodes[i].port);
         
         int err2 = server_put_send(fd, list.nodes[i].addr_s, key, value);
         

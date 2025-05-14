@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         //fprintf(stderr, "Server listening on %s:%d\n", ip, port);
 
 
-        if (memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)    
+        if (!memchr(buffer, '\0', MAX_MSG_SIZE) == NULL)    
         {
             err = server_get(fd, buffer, &address, table);
         }
