@@ -50,10 +50,32 @@ static int server_get_recv(int fd, dkvs_value_t* value)
 {
     M_REQUIRE_NON_NULL(value);
 
-    char buffer[MAX_MSG_ELEM_SIZE];
+    char* buffer = calloc(MAX_MSG_ELEM_SIZE, sizeof(char));
+    if (!buffer) return ERR_OUT_OF_MEMORY;
+     
     ssize_t bytes = udp_read(fd, buffer, MAX_MSG_ELEM_SIZE, NULL);
     debug_printf("server_get_recv(): read \"%s\" (size: %ld)\n", "", -1l);
 
+    if (bytes == 1 && buffer[0] == '\0')
+    {
+        free(buffer);
+        return ERR_NOT_FOUND;
+    }
+    else if (memchr(buffer, '\0', (size_t)bytes) != NULL){
+        return ERR_NETWORK;
+    }
+    else if (bytes > 0){
+        *value = calloc(bytes+1, sizeof(char));
+        if(!value){
+            free(buffer);
+            return ERR_OUT_OF_MEMORY;
+        }
+
+        memcpy(*value, buffer, bytes);
+        value[bytes+1] = '\0';
+        return ERR_NONE;
+    }
+    
     return ERR_NETWORK;
 }
 
