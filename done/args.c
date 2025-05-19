@@ -66,7 +66,8 @@ int parse_opt_args(args_t *args, size_t supported_args, int *argc, char ***rem_a
             --(*argc);
             ++char_list;
             
-            if (*argc == 0 || !char_list[0] || (R = atouint32(char_list[0])) == 0) {
+            (R = atouint32(char_list[0]));
+            if (*argc == 0 || !char_list[0] ||  R == 0 || R >= 255) {
                 return ERR_INVALID_COMMAND;
             }
             ++char_list;
