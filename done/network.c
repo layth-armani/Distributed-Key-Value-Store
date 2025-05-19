@@ -120,8 +120,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
 
-        err = server_get_send(fd, list.nodes[i].addr_s, key);
-        
+        err = server_get_send(fd, list.nodes[i].addr_s, key);        
         if (err == ERR_NONE)
         {
         
@@ -133,6 +132,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
 
                
                 dkvs_value_t response = Htable_get_value(count_table, *value);
+                
                 if (!response)
                 {
                     response = calloc(2,sizeof(char));
@@ -172,6 +172,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
             if (i < MIN(list.size, client->args.total_servers) - 1)
             {
                 free(*value);
+                *value = NULL;
             }
             
         }
@@ -179,7 +180,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
 
     Htable_free(&count_table);
     node_list_free(&list);
-    return err;
+    return ERR_NETWORK;
 }
 
 // ======================================================================
@@ -264,7 +265,15 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
             if (ack_bytes != 1 || ack[0] != '\0') {
                 any_failed = 1;
             }
-            else succeeded++;
+            else {
+                succeeded++;
+                if (succeeded == client->args.put_needed)
+                {
+                    node_list_free(&list);
+                    return ERR_NONE;
+                }
+                
+            }
         } else {
             any_failed = 1;
         }
