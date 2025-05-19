@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 
 #include "args.h"
 #include "socket_layer.h"
@@ -166,7 +167,6 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
     if (strlen(key)   > MAX_MSG_ELEM_SIZE) return ERR_INVALID_ARGUMENT;
     if (strlen(value) > MAX_MSG_ELEM_SIZE) return ERR_INVALID_ARGUMENT;
 
-    // to do WEEK 10...
     node_list_t list = {0, 0 , NULL};
     int err = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
 
@@ -176,16 +176,39 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
         return err;
     }
 
-    
     int fd = client->socket;
-    int ret = err;
+    int ret = ERR_NONE;
+    int any_failed = 0;
 
     for (size_t i = 0; i < list.size; i++)
     {
         err = server_put_send(fd, list.nodes[i].addr_s, key, value);
-        if(err != ERR_NONE)ret = err;
+
+        if (err != ERR_NONE) {
+            any_failed = 1;
+            continue;
+        }
+
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(fd, &readfds);
+
+        struct timeval timeout;
+        timeout.tv_sec = 1;  
+        timeout.tv_usec = 0;
+
+        int sel = select(fd + 1, &readfds, NULL, NULL, &timeout);
+        if (sel > 0 && FD_ISSET(fd, &readfds)) {
+            char ack[2] = {0};
+            ssize_t ack_bytes = udp_read(fd, ack, sizeof(ack), NULL);
+            if (ack_bytes != 1 || ack[0] != '\0') {
+                any_failed = 1;
+            }
+        } else {
+            any_failed = 1;
+        }
     }
-   
+
     node_list_free(&list);
-    return ret;
+    return any_failed ? ERR_NETWORK : ERR_NONE;
 }

@@ -20,7 +20,7 @@ int client_init(client_t *client, size_t supported_args, int *argc, char ***argv
             return ERR_OUT_OF_MEMORY;
         }
     }
-    int fd = get_socket(0);
+    int fd = get_socket(1);
     if (fd < 0) return fd;
     client->socket = fd;
     

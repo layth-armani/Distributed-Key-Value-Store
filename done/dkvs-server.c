@@ -60,7 +60,7 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
     }
     else {
         debug_printf("failure %s\n", "");
-        ret = udp_send(fd, NULL, 0, client); 
+        ret = udp_send(fd, "\1", 0, client); 
     }
     
     return ret < 0 ? (int) ret : ERR_NONE;
