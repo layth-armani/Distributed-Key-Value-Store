@@ -136,7 +136,7 @@ int main(int argc, char **argv)
         {
             err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
         }
-        else if (buffer[0]  == '\0') {
+        else if (buffer[0]  == '\0' && bytes != 0) {
             err = ERR_NOT_FOUND;
         } else {
             err = server_get(fd, buffer, &address, table);

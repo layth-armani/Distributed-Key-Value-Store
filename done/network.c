@@ -64,7 +64,7 @@ static int server_get_recv(int fd, dkvs_value_t* value)
     else if (memchr(buffer, '\0', (size_t)bytes) != NULL){
         return ERR_NETWORK;
     }
-    else if (bytes > 0){
+    else if (bytes >= 0){
         *value = calloc(bytes+1, sizeof(char));
         if(!value){
             free(buffer);
