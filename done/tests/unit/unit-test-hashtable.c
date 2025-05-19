@@ -95,6 +95,56 @@ START_TEST(your_own_test)
 }
 END_TEST
 
+START_TEST(dump_invalid_args)
+{
+    Htable_t* table;
+    size_t to;
+    char buf;
+
+    ck_assert_invalid_arg(Htable_dump(NULL, 0, &to, &buf, 1));
+    ck_assert_invalid_arg(Htable_dump(table, 0, NULL, &buf, 1));
+    ck_assert_invalid_arg(Htable_dump(table, 0, &to, NULL, 1));
+    ck_assert_invalid_arg(Htable_dump(table, 0, &to, &buf, 0));
+}
+END_TEST
+
+START_TEST(dump_simple)
+{
+    Htable_t *table = Htable_construct(100);
+
+    Htable_add_value(table, "a", "0123456789");
+
+    size_t to = 0;
+    char buf[50];
+
+    ck_assert_err_none(Htable_dump(table, to, &to, buf, 50));
+    ck_assert_str_eq(buf, "storing 1 key-value pairs:\na --> 0123456789\n");
+
+    Htable_free(&table);
+}
+END_TEST
+
+START_TEST(dump_overflow)
+{
+    Htable_t *table = Htable_construct(100);
+
+    Htable_add_value(table, "a", "0123456789");
+    Htable_add_value(table, "b", "0123456789");
+    Htable_add_value(table, "c", "0123456789");
+
+    size_t to = 0;
+    char buf[50];
+
+    ck_assert_err_none(Htable_dump(table, to, &to, buf, 50));
+    ck_assert_str_eq(buf, "storing 3 key-value pairs:\na --> 0123456789\n");
+
+    ck_assert_err_none(Htable_dump(table, to, &to, buf, 50));
+    ck_assert_str_eq(buf, "b --> 0123456789\nc --> 0123456789\n");
+
+    Htable_free(&table);
+}
+END_TEST
+
 // ======================================================================
 Suite *hashtable_suite(void)
 {
@@ -105,6 +155,10 @@ Suite *hashtable_suite(void)
 
     Add_Test_With_Fixture(s, add_value_does_retrieve_same_value, allocate_global_ht, free_global_ht);
 
+    Add_Test(s, dump_invalid_args);
+    Add_Test(s, dump_simple);
+    Add_Test(s, dump_overflow);
+    
     return s;
 }
 
