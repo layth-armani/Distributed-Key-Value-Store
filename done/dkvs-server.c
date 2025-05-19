@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
     // --------------- Lauch UDP server ---------------
     int fd = udp_server_init(ip, port, t);
-    debug_printf("Server listening on %s:%d\n", argv[1], port);
+    debug_printf("Server listening on %s:%d\n", ip, port);
 
     // --------------- Init Hash table ---------------
     Htable_t* table = Htable_construct(HTABLE_SIZE);

@@ -26,7 +26,7 @@ int cli_client_get(client_t *client, int argc, char **argv){
     argv++;
     argc--;
 
-    dkvs_value_t* value = calloc(1, sizeof(value));
+    dkvs_value_t* value = calloc(1, sizeof(dkvs_value_t*));
     if(value == NULL){
         free((void*)key_copy);
         return ERR_OUT_OF_MEMORY;

@@ -29,7 +29,7 @@ size_t hash_function(dkvs_const_key_t key, size_t size) {
     return hash % size;
 }
 
-Htable_t* Htable_construct(size_t size) {
+Htable_t*   Htable_construct(size_t size) {
     if (size == 0)
     {
         fprintf(stderr, "Cannot construct a Hashtable with size 0: Returning NULL\n");

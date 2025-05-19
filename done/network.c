@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <string.h>
 
 #include "args.h"
 #include "socket_layer.h"
@@ -28,6 +29,7 @@
 #include "node.h"
 #include "node_list.h"
 #include "util.h"
+
 
 // ======================================================================
 static int server_get_send(int fd, struct sockaddr_in server_addr, dkvs_const_key_t key)
@@ -117,39 +119,48 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
         char buf[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
+
         err = server_get_send(fd, list.nodes[i].addr_s, key);
         
         if (err == ERR_NONE)
         {
+        
             err = server_get_recv(fd, value);
             
 
             if (err == ERR_NONE)
             {
-                dkvs_value_t response = Htable_get_value(count_table, (dkvs_const_key_t) value);
 
+               
+                dkvs_value_t response = Htable_get_value(count_table, *value);
                 if (!response)
                 {
-                    response = calloc(1,sizeof(char));
+                    response = calloc(2,sizeof(char));
                     if (!response)
                     {
-                        Htable_print(count_table);
                         Htable_free(&count_table);
                         return ERR_OUT_OF_MEMORY;
                     }
-                    response[0] = '\x01';
-
+                    response[0] = '1';
+                    response[1] = '\0';
                     err = Htable_add_value(count_table, *value, response);
+                    
                 }
                 else{
-                    ++response[0];
+
+                    int count = atoi(response);
+                    count++;
+
+                    snprintf(response, 2 ,"%d" , count);
                     err = Htable_add_value(count_table, *value, response);
                 }
 
-                if ((size_t) response[0] == R)
+        
+
+                if ((size_t) atoi(response) == R)
                 {
                     free(response);
-                    Htable_print(count_table);
+                    node_list_free(&list);
                     Htable_free(&count_table);
                     return err;
                 }
@@ -157,14 +168,16 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
                 free(response);
                 
             }
-        
+            
+            if (i < MIN(list.size, client->args.total_servers) - 1)
+            {
+                free(*value);
+            }
+            
         }
     }
 
-    Htable_print(count_table);
     Htable_free(&count_table);
-
-
     node_list_free(&list);
     return err;
 }
