@@ -180,7 +180,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
 
     Htable_free(&count_table);
     node_list_free(&list);
-    return ERR_NETWORK;
+    return ERR_NOT_FOUND;
 }
 
 // ======================================================================
