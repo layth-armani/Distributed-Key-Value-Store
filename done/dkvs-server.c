@@ -55,11 +55,11 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
     int err = Htable_add_value(table, key, value);
     ssize_t ret = 0;
     if(err == ERR_NONE){
-        debug_printf("success \n");
+        debug_printf("success %s\n", "");
         ret = udp_send(fd, "\0", 1, client);
     }
     else {
-       debug_printf("failure \n");
+        debug_printf("failure %s\n", "");
         ret = udp_send(fd, NULL, 0, client); 
     }
     
