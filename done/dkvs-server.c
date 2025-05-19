@@ -83,10 +83,15 @@ int main(int argc, char **argv)
 
     // usage: prog <IP> <port> [<key> <value> ...]
     if ((argc < 3) || (argc % 2 == 0)) return out(ERR_INVALID_COMMAND);
-    const char* ip = argv[1];
+    ++argv;
+    --argc; 
+    const char* ip = argv[0];
 
     // --------------- Get port number ---------------
-    const char *port_str = argv[2];
+    ++argv;
+    --argc;
+
+    const char *port_str = argv[0];
     char *endptr;
 
     // Convert string to unsigned long
@@ -104,6 +109,25 @@ int main(int argc, char **argv)
     }
 
     // ...to be continued week 11...
+    ++argv;
+    --argc;
+
+
+    while (argc > 0)
+    {
+        err = Htable_add_value(table, argv[0], argv[1]);
+
+        if (err != ERR_NONE)
+        {
+            return ERR_INVALID_COMMAND;
+        }
+        
+        argv += 2;
+        argc -= 2;
+
+    }
+    
+
     
     // --------------- Listening loop ---------------
     while (err == ERR_NONE) {

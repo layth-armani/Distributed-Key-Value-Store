@@ -27,6 +27,7 @@
 #include "client.h"
 #include "node.h"
 #include "node_list.h"
+#include "util.h"
 
 // ======================================================================
 static int server_get_send(int fd, struct sockaddr_in server_addr, dkvs_const_key_t key)
@@ -63,16 +64,17 @@ static int server_get_recv(int fd, dkvs_value_t* value)
         return ERR_NOT_FOUND;
     }
     else if (memchr(buffer, '\0', (size_t)bytes) != NULL){
+        free(buffer);
         return ERR_NETWORK;
     }
     else if (bytes >= 0){
-        *value = calloc(bytes+1, sizeof(char));
+        *value = calloc((size_t) bytes +1, sizeof(char));
         if(!value){
             free(buffer);
             return ERR_OUT_OF_MEMORY;
         }
 
-        memcpy(*value, buffer, bytes);
+        memcpy(*value, buffer, (size_t)bytes);
         (*value)[bytes] = '\0';
         free(buffer);
         return ERR_NONE;
@@ -82,7 +84,7 @@ static int server_get_recv(int fd, dkvs_value_t* value)
 }
 
 // ======================================================================
-int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
+int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* value)
 {
     M_REQUIRE_NON_NULL(client);
     M_REQUIRE_NON_NULL(key);
@@ -90,32 +92,77 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
     if (strlen(key) > MAX_MSG_ELEM_SIZE) return ERR_INVALID_ARGUMENT;
 
     node_list_t list = {0 , 0, NULL}; 
-   
+    
     int err = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
-
+    
     if (err != ERR_NONE)
     {
         node_list_free(&list);
         return err;
     }
-
     
+    
+    Htable_t* count_table = Htable_construct(256);
+    size_t R = client->args.get_needed;
 
     int fd = client->socket;
 
-    for (size_t i = 0; i < list.size; i++)
+   
+
+
+
+    for (size_t i = 0; i < MIN(list.size, client->args.total_servers) ; i++)
     {
+      
         char buf[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
         err = server_get_send(fd, list.nodes[i].addr_s, key);
+        
         if (err == ERR_NONE)
         {
-            node_list_free(&list);
             err = server_get_recv(fd, value);
-            return err;
+            
+
+            if (err == ERR_NONE)
+            {
+                dkvs_value_t response = Htable_get_value(count_table, (dkvs_const_key_t) value);
+
+                if (!response)
+                {
+                    response = calloc(1,sizeof(char));
+                    if (!response)
+                    {
+                        Htable_print(count_table);
+                        Htable_free(&count_table);
+                        return ERR_OUT_OF_MEMORY;
+                    }
+                    response[0] = '\x01';
+
+                    err = Htable_add_value(count_table, *value, response);
+                }
+                else{
+                    ++response[0];
+                    err = Htable_add_value(count_table, *value, response);
+                }
+
+                if ((size_t) response[0] == R)
+                {
+                    free(response);
+                    Htable_print(count_table);
+                    Htable_free(&count_table);
+                    return err;
+                }
+
+                free(response);
+                
+            }
+        
         }
     }
+
+    Htable_print(count_table);
+    Htable_free(&count_table);
 
 
     node_list_free(&list);
@@ -176,9 +223,9 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
     }
 
     int fd = client->socket;
-    int ret = ERR_NONE;
+    
     int any_failed = 0;
-    int succeeded = 0;
+    size_t succeeded = 0;
 
     for (size_t i = 0; i < list.size; i++)
     {
