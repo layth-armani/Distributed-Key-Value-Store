@@ -84,7 +84,6 @@ static int server_get_recv(int fd, dkvs_value_t* value)
 // ======================================================================
 int network_get(const client_t* client, dkvs_const_key_t key, dkvs_key_t* value)
 {
-
     M_REQUIRE_NON_NULL(client);
     M_REQUIRE_NON_NULL(key);
     M_REQUIRE_NON_NULL(value);
@@ -179,6 +178,7 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
     int fd = client->socket;
     int ret = ERR_NONE;
     int any_failed = 0;
+    int succeeded = 0;
 
     for (size_t i = 0; i < list.size; i++)
     {
@@ -204,11 +204,13 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
             if (ack_bytes != 1 || ack[0] != '\0') {
                 any_failed = 1;
             }
+            else succeeded++;
         } else {
             any_failed = 1;
         }
     }
 
     node_list_free(&list);
+    if(succeeded < client->args.put_needed) return ERR_NETWORK;
     return any_failed ? ERR_NETWORK : ERR_NONE;
 }
