@@ -50,7 +50,7 @@ int main(void)
        print_server(" (", &servers.nodes[i], " )\n");
     }
     
-    int socket = get_socket(0);
+    int socket = get_socket(1);
     if(socket < 0) {
         ring_free(&servers);
         return socket;
