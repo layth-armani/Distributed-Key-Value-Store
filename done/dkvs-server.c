@@ -35,7 +35,7 @@ static int server_get(int fd, dkvs_const_key_t key,
     else{
         debug_printf("server get for key \"%s\" has value \"%s\" \n", key, value);
         ret = udp_send(fd, value, strlen(value), client);
-        free(value);
+        free((void*)value);
     }
 
     return ret < 0 ? (int) ret : ERR_NONE;
