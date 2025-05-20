@@ -10,7 +10,7 @@ int cli_client_get(client_t *client, int argc, char **argv){
     if (argv == NULL || argv[0] == NULL || argc != 1) {
         return ERR_INVALID_COMMAND;
     } 
-    if(client == NULL || strlen(argv[0]) > MAX_MSG_ELEM_SIZE){
+    if(client == NULL || strlen(argv[0]) > MAX_MSG_ELEM_SIZE || strlen(argv[0]) == 0){
         return ERR_INVALID_ARGUMENT;
     }
 

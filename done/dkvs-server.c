@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #define HTABLE_SIZE 256
+#define DUMP_SIZE 80
 
 // ======================================================================
 static int server_get(int fd, dkvs_const_key_t key,
@@ -24,10 +25,38 @@ static int server_get(int fd, dkvs_const_key_t key,
     M_REQUIRE_NON_NULL(key);
     M_REQUIRE_NON_NULL(client);
     M_REQUIRE_NON_NULL(table);
+
+    ssize_t ret = 0;
+    char buffer[DUMP_SIZE];
     
+    size_t to = 0;
+
+    if (strlen(key)==0)
+    {
+        char client_str[INET_ADDRSTRLEN + 8];
+        uint16_t client_port = ntohs(client->sin_port);
+        snprintf(client_str, INET_ADDRSTRLEN+8, "%s:%d",
+                 inet_ntoa(client->sin_addr), client_port);
+
+        debug_printf("Server dump for client \"%s\"\n", client_str);
+        
+        while (to < table->size)
+        {
+            int dump = Htable_dump(table, 0, &to, buffer, DUMP_SIZE);
+
+            if (dump!=ERR_NONE)
+            {
+                return dump;
+            }
+            
+            ret = udp_send(fd,buffer, DUMP_SIZE, client);
+        }
+
+        return (int)ret;
+    }
+
     dkvs_const_value_t value = Htable_get_value(table, key);
     
-    ssize_t ret = 0;
     if(value == NULL){
         debug_printf("value not found for server get for key \"%s\" \n", key);
         ret = udp_send(fd, "\0", 1, client);
@@ -52,9 +81,11 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
 
     debug_printf("server put for \"%s\" --> \"%s\":\n", key, value);
 
-    int err = Htable_add_value(table, key, value);
+   
     ssize_t ret = 0;
-    if(err == ERR_NONE){
+
+    int err = 0;
+    if( strlen(key) !=0 && (err = Htable_add_value(table, key, value)) == ERR_NONE){
         debug_printf("success %s\n", "");
         ret = udp_send(fd, "\0", 1, client);
     }
