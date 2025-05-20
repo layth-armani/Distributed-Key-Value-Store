@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #define HTABLE_SIZE 256
-#define DUMP_SIZE MAX_MSG_SIZE
+
 
 // ======================================================================
 static int server_get(int fd, dkvs_const_key_t key,
@@ -27,22 +27,24 @@ static int server_get(int fd, dkvs_const_key_t key,
     M_REQUIRE_NON_NULL(table);
 
     ssize_t ret = 0;
-    char buffer[DUMP_SIZE];
+    char buffer[MAX_MSG_SIZE];
     
     size_t to = 0;
+    size_t from = 0;
 
     if (strlen(key)==0)
     {
         while (to < table->size)
         {
-            int dump = Htable_dump(table, 0, &to, buffer, DUMP_SIZE);
+            int dump = Htable_dump(table, from, &to, buffer, MAX_MSG_SIZE);
+            from = to;
 
             if (dump!=ERR_NONE)
             {
                 return dump;
             }
             
-            ret = udp_send(fd,buffer, DUMP_SIZE, client);
+            ret = udp_send(fd,buffer, MAX_MSG_SIZE, client);
         }
 
         return ret < 0 ? (int)ret : ERR_NONE;
@@ -139,24 +141,29 @@ int main(int argc, char **argv)
     --argc;
 
 
-    while (argc > 0)
+
+    while (argc > 1) // Ensure at least key and value remain
     {
-        err = Htable_add_value(table, argv[0], argv[1]);
+        
+        char key[MAX_MSG_ELEM_SIZE];
+        char value[MAX_MSG_ELEM_SIZE];
+
+        strncpy(key, argv[0], MAX_MSG_ELEM_SIZE - 1);
+        key[MAX_MSG_ELEM_SIZE - 1] = '\0';
+        strncpy(value, argv[1], MAX_MSG_ELEM_SIZE - 1);
+        value[MAX_MSG_ELEM_SIZE - 1] = '\0';
+
+        err = Htable_add_value(table, key, value);
 
         if (err != ERR_NONE)
         {
             return ERR_INVALID_COMMAND;
         }
-        
+
         argv += 2;
         argc -= 2;
-
     }
 
-    Htable_print(table);
-    
-
-    
     // --------------- Listening loop ---------------
     while (err == ERR_NONE) {
         
