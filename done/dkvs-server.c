@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #define HTABLE_SIZE 256
-#define DUMP_SIZE 80
+#define DUMP_SIZE MAX_MSG_SIZE
 
 // ======================================================================
 static int server_get(int fd, dkvs_const_key_t key,
@@ -33,13 +33,6 @@ static int server_get(int fd, dkvs_const_key_t key,
 
     if (strlen(key)==0)
     {
-        char client_str[INET_ADDRSTRLEN + 8];
-        uint16_t client_port = ntohs(client->sin_port);
-        snprintf(client_str, INET_ADDRSTRLEN+8, "%s:%d",
-                 inet_ntoa(client->sin_addr), client_port);
-
-        debug_printf("Server dump for client \"%s\"\n", client_str);
-        
         while (to < table->size)
         {
             int dump = Htable_dump(table, 0, &to, buffer, DUMP_SIZE);
@@ -52,7 +45,7 @@ static int server_get(int fd, dkvs_const_key_t key,
             ret = udp_send(fd,buffer, DUMP_SIZE, client);
         }
 
-        return (int)ret;
+        return ret < 0 ? (int)ret : ERR_NONE;
     }
 
     dkvs_const_value_t value = Htable_get_value(table, key);
@@ -114,8 +107,10 @@ int main(int argc, char **argv)
 
     // usage: prog <IP> <port> [<key> <value> ...]
     if ((argc < 3) || (argc % 2 == 0)) return out(ERR_INVALID_COMMAND);
+
     ++argv;
     --argc; 
+
     const char* ip = argv[0];
 
     // --------------- Get port number ---------------
@@ -157,6 +152,8 @@ int main(int argc, char **argv)
         argc -= 2;
 
     }
+
+    Htable_print(table);
     
 
     

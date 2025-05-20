@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <errno.h>
+#include <stdlib.h>
 
 // ======================================================================
 static void print_sockaddr_in(const struct sockaddr_in* addr_s)
@@ -16,6 +17,7 @@ static void print_sockaddr_in(const struct sockaddr_in* addr_s)
            ntohs(addr_s->sin_port)
           );
 }
+
 
 // ======================================================================
 static void print_server(const char*   prefix,
@@ -47,8 +49,12 @@ int main(void)
     for (size_t i = 0; i < servers.size; i++)
     {
        print_sha(servers.nodes[i].sha);
-       print_server(" (", &servers.nodes[i], " )\n");
+       printf(" (%s %d)\n", inet_ntoa(servers.nodes[i].addr_s.sin_addr),
+           ntohs(servers.nodes[i].addr_s.sin_port)
+          );
     }
+
+    putchar('\n');
     
     int socket = get_socket(1);
     if(socket < 0) {
@@ -84,8 +90,10 @@ int main(void)
             }
         }
         else {
-            print_server("", &servers.nodes[i], ": ");
+            print_server(NULL, &servers.nodes[i], ": ");
             printf("node %zu has same server as node %d\n",i, (int)value[0]);
+            putchar('\n');
+            free(value);
             continue;
         }
         
@@ -97,6 +105,7 @@ int main(void)
             ring_free(&servers);
             close(socket);
             Htable_free(&table);
+            free(value);
             return (int)bytes;
         }
 
@@ -119,6 +128,7 @@ int main(void)
                 ring_free(&servers);
                 close(socket);
                 Htable_free(&table);
+                free(value);
                 return (int)bytes;
             }
 
@@ -132,11 +142,13 @@ int main(void)
 
             printf("\n");
         }
+        free(value);
     }
 
     ring_free(&servers);
     close(socket);
     Htable_free(&table);
+    
 
     return ERR_NONE;
 }
