@@ -77,16 +77,18 @@ class Week07(DKVSTests):
             },
         )
 
-    def test_dump_handout_example(self):
+    def test_dump_handout_example_improved(self):
         self.create_server_file(
             ["127.0.0.1", "1234", "1"],
             ["127.0.0.1", "1235", "2"],
             ["127.0.0.1", "1236", "3"],
+            ["127.0.0.1", "1237", "2"],
         )
 
         self.server("127.0.0.1", "1234")
         self.server("127.0.0.1", "1235")
         self.server("127.0.0.1", "1236")
+        self.server("127.0.0.1", "1237")
 
         (ret, out, err) = self.client("put", "a", "b")
         self.assertErr(ret, "ERR_NONE")
@@ -98,7 +100,9 @@ class Week07(DKVSTests):
         self.assertListEqual(
             nodes,
             [
+                ["05f929071339f796a97abc59a095e0cb206abb7a", "127.0.0.1", "1237"],
                 ["1bcd2db55b43d8c6b50583892f141a6bb3224c04", "127.0.0.1", "1235"],
+                ['413518e3f53d2922b8df4dc02d0121f0fe781b0b', '127.0.0.1', '1237'],
                 ["5f26268754fcf2a51fcfacaaa2aaf4f0d83f6d67", "127.0.0.1", "1236"],
                 ["93149f866bf3acc9710375cb46706bf09960a6ab", "127.0.0.1", "1236"],
                 ["aa66f3e5a8d9cdc5c0bd49708bc59847e6915634", "127.0.0.1", "1234"],
@@ -111,8 +115,9 @@ class Week07(DKVSTests):
             servers,
             {
                 "127.0.0.1:1234": {"a": "b"},
-                "127.0.0.1:1235": {"cc": "dd"},
+                "127.0.0.1:1235": {"a": "b", "cc": "dd"},
                 "127.0.0.1:1236": {"a": "b", "cc": "dd"},
+                "127.0.0.1:1237": {"cc": "dd"},
             },
         )
 
