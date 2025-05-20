@@ -4,6 +4,7 @@
 #include <string.h>
 #include "hashtable.h"
 #include "error.h"
+#include "config.h"
 
 struct bckt_t {
     kv_pair_t* kv_pair;
@@ -235,4 +236,81 @@ void Htable_print(const Htable_t* table) {
             bucket = bucket->collision;
         }
     }
+}
+
+size_t Htable_size(const Htable_t* table){
+    if (table == NULL || table->size==0) {
+        fprintf(stderr,"Hashtable is NULL or Empty.\n");
+        return 0;
+    }
+    size_t size = 0;
+    for (size_t i = 0; i < table->size; i++) {
+        bucket_t* bucket = &table->content[i];
+        while (bucket != NULL && bucket->kv_pair != NULL ) {
+            size++;                 
+            bucket = bucket->collision;
+        }
+    }
+    return size;
+}
+
+#define header "storing %zu key-value pairs:\n"
+#define kvpair "%s --> %s\n"
+
+int Htable_dump(const Htable_t* table, size_t from, size_t* to, char* buffer, size_t buffer_size){
+    if(buffer == NULL || buffer_size == 0 || buffer_size > MAX_MSG_SIZE || table == NULL || to == NULL)return ERR_INVALID_ARGUMENT;
+
+    size_t size = Htable_size(table);
+
+    int written = 0;
+    int to_write = 0;
+    size_t len = 0;
+    *to = from;
+    
+    memset(buffer, 0, buffer_size);
+
+    if (from == 0) {
+        to_write = snprintf(NULL, 0, header, size);
+        if(to_write < 0) return ERR_RUNTIME;
+        if ((size_t)to_write >= buffer_size) return ERR_INVALID_CONFIG;
+        
+        written = snprintf(buffer + len, buffer_size - len, header, size);
+
+        if(written < 0 || to_write != written) return ERR_RUNTIME;
+        len += (size_t) written;
+    }
+    if(size == 0) return ERR_NONE;
+    
+
+    for (size_t i = from; i < table->size; i++) {
+        bucket_t* bucket = &table->content[i];
+        
+        to_write = 0;
+        while (bucket != NULL && bucket->kv_pair != NULL ) {                
+            int current_written = snprintf(NULL, 0, kvpair, bucket->kv_pair->key, bucket->kv_pair->value);
+            if(current_written < 0) return ERR_RUNTIME;
+            to_write += current_written;
+            bucket = bucket->collision;
+        }
+        if((size_t)to_write >= buffer_size) return ERR_INVALID_CONFIG;
+        if(len + (size_t)to_write >= buffer_size) {
+            if (i == from) return ERR_INVALID_CONFIG;
+            *to = i;
+            return ERR_NONE;
+        }
+
+        written = 0;
+        bucket = &table->content[i];
+        while (bucket != NULL && bucket->kv_pair != NULL ) {                
+            int current_written = snprintf(buffer + len, buffer_size - len, kvpair, bucket->kv_pair->key, bucket->kv_pair->value);
+            if(current_written < 0) return ERR_RUNTIME;
+            written += current_written;
+            bucket = bucket->collision;
+        }
+        if(to_write != written) return ERR_RUNTIME;
+        len += (size_t)written;
+    }
+
+    *to = table->size;
+    return ERR_NONE;
 }
