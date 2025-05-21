@@ -4,6 +4,25 @@ import os
 from error import *
 from shutil import copyfile
 import glob
+import time
+import signal
+
+# https://imzye.com/Python/python-func-timeout/
+class Timeout:
+    def __init__(self, seconds=1, error_message="Timeout"):
+        self.seconds = seconds
+        self.error_message = error_message
+
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
 
 SRC_DIR = os.getenv("SRC_DIR", "../../done")
 EXE = f"./dkvs-client"
@@ -66,7 +85,8 @@ class DKVSTests(unittest.TestCase):
     def run(self, result=None):
         failure_count = len(result.failures) if result else 0
 
-        res = unittest.TestCase.run(self, result)  # call superclass run method
+        with Timeout(seconds=20):
+            res = unittest.TestCase.run(self, result)  # call superclass run method
 
         if failure_count != len(res.failures):
             sf_print = ""
