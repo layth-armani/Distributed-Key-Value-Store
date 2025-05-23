@@ -14,8 +14,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #define HTABLE_SIZE 256
+
+pthread_mutex_t mutex;
+
+
 
 
 // ======================================================================
@@ -101,11 +106,40 @@ static int out(int error_code)
     return error_code;
 }
 
+int mutex_init(int type, int robust){
+    int err1 = 0, err2 = 0;
+    pthread_mutexattr_t mutex_attribute;
+    pthread_mutexattr_init(&mutex_attribute);
+
+    if (type)
+    {
+        err1 = pthread_mutexattr_settype(&mutex_attribute,type);
+    }
+    
+    if (robust)
+    {
+        err2 = pthread_mutexattr_setrobust(&mutex_attribute, robust);
+    }
+
+    return (err1 || err2) ? ERR_THREADING : pthread_mutex_init(&mutex, &mutex_attribute);
+}
+
 // ======================================================================
 int main(int argc, char **argv)
 {
     int err = ERR_NONE;
     int t = 0;
+
+
+    // Create and set options for mutex variable
+    #if defined(PTHREAD_MUTEX_NORMAL) && defined(PTHREAD_MUTEX_ROBUST)
+    if (mutex_init(PTHREAD_MUTEX_NORMAL, PTHREAD_MUTEX_ROBUST))
+    {
+        return ERR_THREADING;
+    }
+    #else 
+    mutex_init(0,0);
+    #endif
 
     // usage: prog <IP> <port> [<key> <value> ...]
     if ((argc < 3) || (argc % 2 == 0)) return out(ERR_INVALID_COMMAND);

@@ -29,9 +29,32 @@
 #include "node.h"
 #include "node_list.h"
 #include "util.h"
+#include "ring.h"
 
 
 // ======================================================================
+
+static int is_valid_server(ring_t* ring ,struct sockaddr_in* address){
+
+    if (ring->size == 0)
+    {
+        return 0;
+    }
+
+    for (size_t i = 0; i < ring->size ; i++)
+    {
+        struct sockaddr_in* a = &ring->nodes[i].addr_s;
+
+        if (a->sin_family == address->sin_family &&
+            a->sin_port == address->sin_port &&
+            a->sin_addr.s_addr == address->sin_addr.s_addr) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
 static int server_get_send(int fd, struct sockaddr_in server_addr, dkvs_const_key_t key)
 {
     M_REQUIRE_NON_NULL(key);
@@ -50,14 +73,14 @@ static int server_get_send(int fd, struct sockaddr_in server_addr, dkvs_const_ke
 }
 
 // ======================================================================
-static int server_get_recv(int fd, dkvs_value_t* value)
+static int server_get_recv(int fd, dkvs_value_t* value, struct sockaddr_in* address)
 {
     M_REQUIRE_NON_NULL(value);
 
     char* buffer = calloc(MAX_MSG_ELEM_SIZE, sizeof(char));
     if (!buffer) return ERR_OUT_OF_MEMORY;
      
-    ssize_t bytes = udp_read(fd, buffer, MAX_MSG_ELEM_SIZE, NULL);
+    ssize_t bytes = udp_read(fd, buffer, MAX_MSG_ELEM_SIZE, address);
     debug_printf("server_get_recv(): read \"%s\" (size: %ld)\n", buffer, bytes);
 
     if (bytes == 1 && buffer[0] == '\0')
@@ -102,81 +125,77 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
         node_list_free(&list);
         return err;
     }
-    
-    
+      
     Htable_t* count_table = Htable_construct(256);
     size_t R = client->args.get_needed;
 
-    int fd = client->socket;
+    time_t t = 10;
+    int fd = get_socket(t);
 
-   
-
-
-
-    for (size_t i = 0; i < MIN(list.size, client->args.total_servers) ; i++)
+    for (size_t i = 0; i < client->args.total_servers ; i++)
     {
       
         char buf[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
 
-        err = server_get_send(fd, list.nodes[i].addr_s, key);        
-        if (err == ERR_NONE)
-        {
+        err = server_get_send(fd, list.nodes[i].addr_s, key);       
         
-            err = server_get_recv(fd, value);
+    }
+
+    for (size_t i = 0; i < client->args.total_servers ; i++)
+    {
+     
+        struct sockaddr_in address = {0};
+        
+        err = server_get_recv(fd, value, &address);
+    
+        if (err == ERR_NONE && is_valid_server(&list, &address) )
+        {
+            dkvs_value_t response = Htable_get_value(count_table, *value);
             
-
-            if (err == ERR_NONE)
+            if (!response)
             {
-
-               
-                dkvs_value_t response = Htable_get_value(count_table, *value);
-                
+                response = calloc(2,sizeof(char));
                 if (!response)
                 {
-                    response = calloc(2,sizeof(char));
-                    if (!response)
-                    {
-                        Htable_free(&count_table);
-                        return ERR_OUT_OF_MEMORY;
-                    }
-                    response[0] = '1';
-                    response[1] = '\0';
-                    err = Htable_add_value(count_table, *value, response);
-                    
-                }
-                else{
-
-                    int count = atoi(response);
-                    count++;
-
-                    snprintf(response, 2 ,"%d" , count);
-                    err = Htable_add_value(count_table, *value, response);
-                }
-
-        
-
-                if ((size_t) atoi(response) == R)
-                {
-                    free(response);
-                    node_list_free(&list);
                     Htable_free(&count_table);
-                    return err;
+                    return ERR_OUT_OF_MEMORY;
                 }
-
-                free(response);
+                response[0] = '1';
+                response[1] = '\0';
+                err = Htable_add_value(count_table, *value, response);
                 
             }
-            
-            if (i < MIN(list.size, client->args.total_servers) - 1)
-            {
-                free(*value);
-                *value = NULL;
+            else{
+    
+                int count = atoi(response);
+                count++;
+    
+                snprintf(response, 2 ,"%d" , count);
+                err = Htable_add_value(count_table, *value, response);
             }
+            if ((size_t) atoi(response) == R)
+            {
+                free(response);
+                node_list_free(&list);
+                Htable_free(&count_table);
+                return err;
+            }
+    
+            free(response);
             
         }
+        
+        if (i < MIN(list.size, client->args.total_servers) - 1)
+        {
+            free(*value);
+            *value = NULL;
+        }
+        
     }
+    
+    
 
     Htable_free(&count_table);
     node_list_free(&list);
@@ -201,7 +220,7 @@ static int server_put_send(int fd, struct sockaddr_in server_addr,
                  key, value,
                  inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
 
-    // to do WEEK 10...
+
 
     char buffer[msg_size];
     memcpy(buffer, key, strlen(key) + 1);
@@ -228,7 +247,7 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
     if (strlen(value) > MAX_MSG_ELEM_SIZE) return ERR_INVALID_ARGUMENT;
 
     node_list_t list = {0, 0 , NULL};
-    int err = ring_get_nodes_for_key(client->ring, &list, client->ring->size, key);
+    int err = ring_get_nodes_for_key(client->ring, &list, client->args.total_servers, key);
 
     if (err != ERR_NONE)
     {
@@ -236,7 +255,8 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
         return err;
     }
 
-    int fd = client->socket;
+    time_t t = 10;
+    int fd = get_socket(t);
     
     int any_failed = 0;
     size_t succeeded = 0;
@@ -245,40 +265,32 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
     {
         err = server_put_send(fd, list.nodes[i].addr_s, key, value);
 
-        if (err != ERR_NONE) {
-            any_failed = 1;
-            continue;
-        }
+    }
 
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(fd, &readfds);
+    for (size_t i = 0; i < list.size; i++)
+    {
+       
+        char ack[2] = {0};
+        struct sockaddr_in server_address = {0};
 
-        struct timeval timeout;
-        timeout.tv_sec = 1;  
-        timeout.tv_usec = 0;
+        ssize_t ack_bytes = udp_read(fd, ack, sizeof(ack), &server_address);
+        
+        if (ack_bytes == 1 && ack[0] == '\0' && is_valid_server(&list, &server_address)) {
 
-        int sel = select(fd + 1, &readfds, NULL, NULL, &timeout);
-        if (sel > 0 && FD_ISSET(fd, &readfds)) {
-            char ack[2] = {0};
-            ssize_t ack_bytes = udp_read(fd, ack, sizeof(ack), NULL);
-            if (ack_bytes != 1 || ack[0] != '\0') {
-                any_failed = 1;
-            }
-            else {
-                succeeded++;
-                if (succeeded == client->args.put_needed)
-                {
-                    node_list_free(&list);
-                    return ERR_NONE;
-                }
-                
+            succeeded++;
+
+            if (succeeded == client->args.put_needed) {
+                node_list_free(&list);
+                close(fd);
+                return ERR_NONE;
             }
         } else {
             any_failed = 1;
         }
     }
+    
 
+    close(fd);
     node_list_free(&list);
     if(succeeded < client->args.put_needed) return ERR_NETWORK;
     return any_failed ? ERR_NETWORK : ERR_NONE;
