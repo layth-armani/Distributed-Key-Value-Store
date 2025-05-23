@@ -82,7 +82,10 @@ static int server_get_recv(int fd, dkvs_value_t* value, struct sockaddr_in* addr
     if (!buffer) return ERR_OUT_OF_MEMORY;
      
     ssize_t bytes = udp_read(fd, buffer, MAX_MSG_ELEM_SIZE, address);
-    debug_printf("server_get_recv(): read \"%s\" (size: %ld)\n", buffer, bytes);
+    char addr_buf[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(address->sin_addr), addr_buf, INET_ADDRSTRLEN);
+    debug_printf("server_get_recv(): read \"%s\" (size: %ld) Server Address: %s:%d\n", buffer, bytes, addr_buf, ntohs(address->sin_port));
+    
 
     if (bytes == 1 && buffer[0] == '\0')
     {
@@ -130,7 +133,7 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
     Htable_t* count_table = Htable_construct(256);
     size_t R = client->args.get_needed;
 
-    time_t t = 10;
+    time_t t = 1;
     int fd = get_socket(t);
 
     for (size_t i = 0; i < client->args.total_servers ; i++)
@@ -139,15 +142,21 @@ int network_get(const client_t* client, dkvs_const_key_t key, dkvs_value_t* valu
         char buf[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &list.nodes[i].addr_s.sin_addr, buf, INET_ADDRSTRLEN);
 
-
         err = server_get_send(fd, list.nodes[i].addr_s, key);       
+
+        if (err != ERR_NONE)
+        {
+            return err;
+        }
+        
         
     }
 
     for (size_t i = 0; i < client->args.total_servers ; i++)
     {
      
-        struct sockaddr_in address = {0};
+        struct sockaddr_in address;
+        memset(&address,0,sizeof(struct sockaddr_in));
         
         err = server_get_recv(fd, value, &address);
     
@@ -256,7 +265,7 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
         return err;
     }
 
-    time_t t = 10;
+    time_t t = 1;
     int fd = get_socket(t);
     
     int any_failed = 0;
@@ -270,22 +279,39 @@ int network_put(const client_t* client, dkvs_const_key_t key, dkvs_const_value_t
 
     for (size_t i = 0; i < list.size; i++)
     {
-       
-        char ack[2] = {0};
-        struct sockaddr_in server_address = {0};
-
-        ssize_t ack_bytes = udp_read(fd, ack, sizeof(ack), &server_address);
         
-        if (ack_bytes == 1 && ack[0] == '\0' && is_valid_server(&list, &server_address)) {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(fd, &readfds);
 
-            succeeded++;
+        struct timeval timeout;
+        timeout.tv_sec = t;  
+        timeout.tv_usec = 0;
 
-            if (succeeded == client->args.put_needed) {
-                node_list_free(&list);
-                close(fd);
-                return ERR_NONE;
-            }
-        } else {
+
+       
+        
+        int sel = select(fd + 1, &readfds, NULL, NULL, &timeout);
+
+        if (sel > 0 && FD_ISSET(fd, &readfds)) {
+            
+            char ack[2] = {0};
+            struct sockaddr_in server_address = {0};
+            ssize_t ack_bytes = udp_read(fd, ack, sizeof(ack), &server_address);
+
+            if (ack_bytes == 1 && ack[0] == '\0' && is_valid_server(&list, &server_address)) {
+
+                succeeded++;
+
+                if (succeeded == client->args.put_needed) {
+                    node_list_free(&list);
+                    close(fd);
+                    return ERR_NONE;
+                }
+            } 
+            
+        }
+        else {
             any_failed = 1;
         }
     }
