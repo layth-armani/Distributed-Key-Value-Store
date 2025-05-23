@@ -14,26 +14,35 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
+#include <pthread.h>    
+#include <signal.h>
+
 
 #define HTABLE_SIZE 256
 
 pthread_mutex_t mutex;
 
-
+struct client_data_t {
+    struct sockaddr_in address;
+    int socket;
+    char buffer[MAX_MSG_SIZE+1];
+    ssize_t buffer_size;
+    Htable_t* table;
+};
 
 
 // ======================================================================
-static int server_get(int fd, dkvs_const_key_t key,
-                      const struct sockaddr_in *client, const Htable_t* table)
-{
-    M_REQUIRE_NON_NULL(key);
-    M_REQUIRE_NON_NULL(client);
-    M_REQUIRE_NON_NULL(table);
 
-    ssize_t ret = 0;
-    char buffer[MAX_MSG_SIZE];
-    
+static int server_get(int fd, dkvs_const_key_t key,
+    const struct sockaddr_in *client, const Htable_t* table)
+    {
+        M_REQUIRE_NON_NULL(key);
+        M_REQUIRE_NON_NULL(client);
+        M_REQUIRE_NON_NULL(table);
+        
+        ssize_t ret = 0;
+        char buffer[MAX_MSG_SIZE];
+        
     size_t to = 0;
     size_t from = 0;
 
@@ -43,7 +52,7 @@ static int server_get(int fd, dkvs_const_key_t key,
         {
             int dump = Htable_dump(table, from, &to, buffer, MAX_MSG_SIZE);
             from = to;
-
+            
             if (dump!=ERR_NONE)
             {
                 return dump;
@@ -51,10 +60,10 @@ static int server_get(int fd, dkvs_const_key_t key,
             
             ret = udp_send(fd,buffer, MAX_MSG_SIZE, client);
         }
-
+        
         return ret < 0 ? (int)ret : ERR_NONE;
     }
-
+    
     dkvs_const_value_t value = Htable_get_value(table, key);
     
     if(value == NULL){
@@ -66,24 +75,24 @@ static int server_get(int fd, dkvs_const_key_t key,
         ret = udp_send(fd, value, strlen(value), client);
         free((void*)value);
     }
-
+    
     return ret < 0 ? (int) ret : ERR_NONE;
 }
 
 // ======================================================================
 static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
-                      const struct sockaddr_in *client, Htable_t* table)
-{
-    M_REQUIRE_NON_NULL(key);
-    M_REQUIRE_NON_NULL(value);
-    M_REQUIRE_NON_NULL(client);
-    M_REQUIRE_NON_NULL(table);
-
+    const struct sockaddr_in *client, Htable_t* table)
+    {
+        M_REQUIRE_NON_NULL(key);
+        M_REQUIRE_NON_NULL(value);
+        M_REQUIRE_NON_NULL(client);
+        M_REQUIRE_NON_NULL(table);
+        
     debug_printf("server put for \"%s\" --> \"%s\":\n", key, value);
-
-   
+    
+    
     ssize_t ret = 0;
-
+    
     int err = 0;
     if( strlen(key) !=0 && (err = Htable_add_value(table, key, value)) == ERR_NONE){
         debug_printf("success %s\n", "");
@@ -110,7 +119,7 @@ int mutex_init(int type, int robust){
     int err1 = 0, err2 = 0;
     pthread_mutexattr_t mutex_attribute;
     pthread_mutexattr_init(&mutex_attribute);
-
+    
     if (type)
     {
         err1 = pthread_mutexattr_settype(&mutex_attribute,type);
@@ -120,9 +129,53 @@ int mutex_init(int type, int robust){
     {
         err2 = pthread_mutexattr_setrobust(&mutex_attribute, robust);
     }
+    
+    if (err1 || err2) {
+        pthread_mutexattr_destroy(&mutex_attribute);
+        pthread_mutex_destroy(&mutex);
+        return 1;
+    }
 
-    return (err1 || err2) ? ERR_THREADING : pthread_mutex_init(&mutex, &mutex_attribute);
+    int ret = pthread_mutex_init(&mutex,&mutex_attribute);
+    pthread_mutexattr_destroy(&mutex_attribute);
+    return ret;
+
 }
+
+void* handle_client(void* arguments) {
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGINT );
+    sigaddset(&mask, SIGTERM);
+    pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
+    struct client_data_t* data = (struct client_data_t*)arguments;
+    int err = ERR_NONE;
+
+    if (memchr(data->buffer, '\0', (size_t)data->buffer_size) != NULL) {
+
+        pthread_mutex_lock(&mutex);
+        err = server_put(data->socket, data->buffer, data->buffer + strlen(data->buffer) + 1, &data->address, data->table);
+        pthread_mutex_unlock(&mutex);
+
+    } else if (data->buffer[0] == '\0' && data->buffer_size != 0) {
+        
+        err = ERR_NOT_FOUND;
+    } else {
+        pthread_mutex_lock(&mutex);
+        err = server_get(data->socket, data->buffer, &data->address, data->table);
+        pthread_mutex_unlock(&mutex);
+    }
+
+    if (err != ERR_NONE) {
+        debug_printf("handle_client: error %d\n", err);
+    }
+
+    free(data);
+    return NULL;
+}
+
+
 
 // ======================================================================
 int main(int argc, char **argv)
@@ -138,7 +191,10 @@ int main(int argc, char **argv)
         return ERR_THREADING;
     }
     #else 
-    mutex_init(0,0);
+    if(mutex_init(0,0)){
+        return ERR_THREADING;
+    }
+
     #endif
 
     // usage: prog <IP> <port> [<key> <value> ...]
@@ -167,11 +223,11 @@ int main(int argc, char **argv)
     Htable_t* table = Htable_construct(HTABLE_SIZE);
     if (table == NULL) {
         // maybe add something here (or simply remove that comment)...
+        pthread_mutex_destroy(&mutex);
         return out(ERR_OUT_OF_MEMORY);
     }
 
-    // ...to be continued week 11...
-    ++argv;
+    
     --argc;
 
 
@@ -191,6 +247,7 @@ int main(int argc, char **argv)
 
         if (err != ERR_NONE)
         {
+            pthread_mutex_destroy(&mutex);
             return ERR_INVALID_COMMAND;
         }
 
@@ -204,6 +261,7 @@ int main(int argc, char **argv)
         char* buffer = calloc(MAX_MSG_SIZE, sizeof(char));
         if (!buffer)
         {
+            pthread_mutex_destroy(&mutex);
             return ERR_OUT_OF_MEMORY;
         }
         
@@ -213,6 +271,7 @@ int main(int argc, char **argv)
         err = get_server_addr(ip, port, &address);
         if (err != ERR_NONE){
             free(buffer);
+            pthread_mutex_destroy(&mutex);
             return out(err);
         }
         
@@ -224,18 +283,33 @@ int main(int argc, char **argv)
             return out(err);
         }
 
+        // CLIENT HANDLE PREP
+        struct client_data_t* data = malloc(sizeof(struct client_data_t));
 
-        if (memchr(buffer, '\0', (size_t)bytes) != NULL)    
-        {
-            err = server_put(fd, buffer, buffer + strlen(buffer) + 1, &address, table);
-        }
-        else if (buffer[0]  == '\0' && bytes != 0) {
-            err = ERR_NOT_FOUND;
-        } else {
-            err = server_get(fd, buffer, &address, table);
-        }   
-
+        data->address = address;
+        data->socket = fd;
+        data->table = table;
+        data->buffer_size = bytes;
+        memset(data->buffer, 0, sizeof(data->buffer));
+        memcpy(data->buffer, buffer, (size_t)bytes);    
+        
         free(buffer);
+
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+        pthread_t tid;
+        int thread_err = pthread_create(&tid, &attr, handle_client, data);
+        pthread_attr_destroy(&attr);
+
+        if (thread_err != 0) {
+            debug_printf("Failed to create thread: %s\n", strerror(thread_err));
+            free(data);
+            return ERR_THREADING;
+        }
+        debug_printf("Spawned thread %lu for client\n", tid);
+
 
     }
 

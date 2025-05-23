@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <sys/time.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "args.h"
 #include "socket_layer.h"
