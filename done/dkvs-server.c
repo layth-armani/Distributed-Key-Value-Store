@@ -227,7 +227,7 @@ int main(int argc, char **argv)
         return out(ERR_OUT_OF_MEMORY);
     }
 
-    
+    ++argv;
     --argc;
 
 

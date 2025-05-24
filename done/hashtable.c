@@ -214,7 +214,7 @@ dkvs_value_t Htable_get_value(const Htable_t* table, dkvs_const_key_t key) {
                 }
                 strncpy(result, bucket->kv_pair->value, strlen(bucket->kv_pair->value) + 1);
                 return result;
-            }
+            }   
         }
         bucket = bucket->collision;
     } while (bucket != NULL);
