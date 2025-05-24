@@ -284,6 +284,7 @@ int Htable_dump(const Htable_t* table, size_t from, size_t* to, char* buffer, si
 
     for (size_t i = from; i < table->size; i++) {
         bucket_t* bucket = &table->content[i];
+        if(bucket == NULL) continue;
         
         to_write = 0;
         while (bucket != NULL && bucket->kv_pair != NULL ) {                
@@ -302,7 +303,7 @@ int Htable_dump(const Htable_t* table, size_t from, size_t* to, char* buffer, si
         written = 0;
         bucket = &table->content[i];
         while (bucket != NULL && bucket->kv_pair != NULL ) {                
-            int current_written = snprintf(buffer + len, buffer_size - len, kvpair, bucket->kv_pair->key, bucket->kv_pair->value);
+            int current_written = snprintf(buffer + len + written, buffer_size - len - written, kvpair, bucket->kv_pair->key, bucket->kv_pair->value);
             if(current_written < 0) return ERR_RUNTIME;
             written += current_written;
             bucket = bucket->collision;
