@@ -34,7 +34,7 @@ static int server_get(int fd, dkvs_const_key_t key,
 
     if (strlen(key)==0)
     {
-        while (to < table->size)
+        while (from < table->size)
         {
             int dump = Htable_dump(table, from, &to, buffer, MAX_MSG_SIZE);
             from = to;
