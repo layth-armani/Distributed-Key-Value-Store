@@ -67,10 +67,12 @@ static int server_get(int fd, dkvs_const_key_t key,
     dkvs_const_value_t value = Htable_get_value(table, key);
     
     if(value == NULL){
+        
         debug_printf("value not found for server get for key \"%s\" \n", key);
         ret = udp_send(fd, "\0", 1, client);
     }
     else{
+        
         debug_printf("server get for key \"%s\" has value \"%s\" \n", key, value);
         ret = udp_send(fd, value, strlen(value), client);
         free((void*)value);
@@ -93,12 +95,15 @@ static int server_put(int fd, dkvs_const_key_t key, dkvs_const_value_t value,
     
     ssize_t ret = 0;
     
+    
     int err = 0;
     if( strlen(key) !=0 && (err = Htable_add_value(table, key, value)) == ERR_NONE){
+
         debug_printf("success %s\n", "");
         ret = udp_send(fd, "\0", 1, client);
     }
     else {
+
         debug_printf("failure %s\n", "");
         ret = udp_send(fd, "\1", 0, client); 
     }
@@ -308,7 +313,7 @@ int main(int argc, char **argv)
             free(data);
             return ERR_THREADING;
         }
-        debug_printf("Spawned thread %lu for client\n", tid);
+        debug_printf("thread_start %lu for client\n", tid);
 
 
     }
