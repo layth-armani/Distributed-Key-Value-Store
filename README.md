@@ -85,6 +85,29 @@ get("my_key", N=4, R=2);
 3) Create servers with "./dkvs-server <IPv4-Address> <Port> <Number-of-Nodes> {key value}..." (You may add key and value pair in the last field)
 4) Launch client requests with "./dkvs-client <operation> [W] [R] [N] -- arguments"
 
+### Examples
+You could make use of a servers.txt with several servers and several nodes per server, for instance:
+
+```
+127.0.0.1 1234 1
+127.0.0.1 1235 2
+127.0.0.1 1236 3
+```
+
+and launch the corresponding servers, either by hand on several terminal, or using this command:
+
+```
+cut -d' ' -f 1-2 servers.txt | sort -u | while read line; do i=$(($i + 1)); ./dkvs-server $line >LOG$i.txt 2>&1 & done
+```
+
+Then populate a few, for instance:
+
+```
+./dkvs-client put -- a b
+./dkvs-client put -- cc dd
+./dkvs-client put -- cc dd
+```
+
 
 
 
