@@ -80,7 +80,10 @@ get("my_key", N=4, R=2);
 
 ### Instructions
 
-1) Compile the 
+1) cd ./done 
+2) Compile into the **/done** directory with make
+3) Create servers with "./dkvs-server <IPv4-Address> <Port> <Number-of-Nodes> {key value}..." (You may add key and value pair in the last field)
+4) Launch client requests with "./dkvs-client <operation> [W] [R] [N] -- arguments"
 
 
 
